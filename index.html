@@ -310,7 +310,7 @@
                 </select>
                 <label for="resolution">Resolution </label>
                 <select id="resolution">
-                  <option value="72">72 dpi (fast)</option>
+                  <!-- <option value="72">72 dpi (fast)</option> -->
                   <option value="150">150 dpi</option>
                   <option value="200" selected>200 dpi</option>
                   <option value="300">300 dpi (slow)</option>
@@ -398,11 +398,41 @@
           <!-- Pin Drop -->
 
 
+          <!-- village -->
+           
+          <li class="sidebar_items" onclick="display_toggle_side_Popup('village_boundary_tool')">
+            <span class="material-symbols-outlined">filter_alt</span>
+            <ul id="village_boundary_tool" class="side_menu_popup boundary_tool">
 
+              <form id="filterFormVillage">
+                <label for="state">Select District:</label>
+                <select id="village-dist" name="district">
+                  <option value="">Select District</option>
+                </select>
+
+                <label for="state">Select Circle:</label>
+                <select id="village-circle" name="circle">
+                  <option value="">Select Circle</option>
+                </select>
+
+                <label for="state">Select Village:</label>
+                <select id="village-village" name="village">
+                  <option value="">Select Village</option>
+                </select>
+              </form>
+              <button id="village_selectButton">Select</button>
+
+
+            </ul>
+          </li>
+
+          <!-- village -->
+
+          
 
           <li class="sidebar_items" onclick="display_toggle_side_Popup('boundary_tool')">
             <span class="material-symbols-outlined">filter_alt</span>
-            <ul id="boundary_tool" class="side_menu_popup">
+            <ul id="boundary_tool" class="side_menu_popup boundary_tool">
 
               <form id="filterForm">
                 <label for="state">Select State:</label>
@@ -417,7 +447,6 @@
 
               </form>
               <button id="selectButton">Select</button>
-              <button id="remove-bg">Select Only</button>
 
 
             </ul>

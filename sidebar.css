@@ -451,19 +451,18 @@ select:after {
     top: calc(50% - 0.5em); /* Adjust vertically to center */
 }
 
-
+/* 
 #boundary_tool{
     position: absolute;
     top: 330px;
     left: 269px;
     display: none;
-    height: 180px;
+    height: auto;
     width: 180px;
     background-color: #a4e7d1;
     padding: 10px;
     overflow: hidden;
-    /* border: 1px solid  #00625A; */
-    /* border-radius: 8px; */
+  
     
 }
 
@@ -486,7 +485,49 @@ select:after {
     background-color: #2C8A6A;
     margin: 7px 0 20px 0;
     color: #fff;
+} */
+
+
+.boundary_tool{
+    position: absolute;
+    top: 330px;
+    left: 269px;
+    display: none;
+    height: auto;
+    width: 180px;
+    background-color: #a4e7d1;
+    padding: 10px;
+    overflow: hidden;
+    /* border: 1px solid  #00625A; */
+    /* border-radius: 8px; */
+    
 }
+
+.boundary_tool select{
+    width: 90%;
+    border: 1px solid  #00625A;
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#boundary_tool.show{
+    display: block;
+}
+
+.boundary_tool button{
+    font-size: 15px;
+    border-radius: 7px;
+    padding: 5px 10px;
+    background-color: #2C8A6A;
+    margin: 7px 0 20px 0;
+    color: #fff;
+}
+
+#village_boundary_tool.show{
+    display: block;
+}
+
 
 
 #pindrop_tool{

@@ -121,6 +121,13 @@ document.getElementById('filterForm').addEventListener('click', function(event) 
 });
 
 
+
+// Add an event listener to the form to prevent click propagation
+document.getElementById('filterFormVillage').addEventListener('click', function(event) {
+  event.stopPropagation(); // Stop the click event from propagating to the parent elements
+});
+
+
 document.getElementById('printform').addEventListener('click', function(event) {
   event.stopPropagation(); // Stop the click event from propagating to the parent elements
 });
@@ -222,6 +229,175 @@ document.getElementById("state").addEventListener("change", populateDistricts);
 
 // Populate states when the page loads
 populateStates();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // Function to populate the state dropdown
+// async function populateVillageCircle() {
+//   const jsonData = await fetchJSON('./states-and-districts.json');
+//   const districtSelect = document.getElementById("village-dist");
+//   jsonData.states.forEach( districtData => {
+//     const option = document.createElement("option");
+//     option.text = districtData.state;
+//     option.value =  districtData.state;
+//     districtSelect.add(option);
+//   });
+// }
+
+// // Function to populate the state dropdown
+// async function populateVillageDistrict() {
+//   const jsonData = await fetchJSON('./states-and-districts.json');
+//   const circleselect = document.getElementById("village-circle");
+//   jsonData.states.forEach(circleData => {
+//     const option = document.createElement("option");
+//     option.text = circleData.state;
+//     option.value = circleData.state;
+//     circleselect.add(option);
+//   });
+// }
+
+
+
+// // Function to populate the district dropdown based on the selected state
+// async function populateVillageVillage() {
+//   const jsonData = await fetchJSON('./states-and-districts.json');
+//   const stateSelect = document.getElementById("state");
+//   const districtSelect = document.getElementById("district");
+//   const selectedState = stateSelect.value;
+//   districtSelect.innerHTML = "<option value=''>Select District</option>"; // Clear previous options
+
+//   if (selectedState) {
+//     const selectedStateData = jsonData.states.find(state => state.state === selectedState);
+//     if (selectedStateData) {
+//       selectedStateData.districts.forEach(district => {
+//         const option = document.createElement("option");
+//         option.text = district;
+//         option.value = district;
+//         districtSelect.add(option);
+//       });
+//     }
+//   }
+// }
+
+// // Attach event listeners
+// document.getElementById("state").addEventListener("change", populateDistricts);
+
+// // Populate states when the page loads
+// populateStates();
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  const districtSelect = document.getElementById('village-dist');
+  const circleSelect = document.getElementById('village-circle');
+  const villageSelect = document.getElementById('village-village');
+
+  // Fetch the JSON file containing the district, circle, village data
+  fetch('./district_circle_village.json')
+    .then(response => response.json())
+    .then(data => {
+      populateDistricts(data);
+      
+      districtSelect.addEventListener('change', () => {
+        populateCircles(data, districtSelect.value);
+        villageSelect.innerHTML = '<option value="">Select Village</option>'; // Reset villages
+        villageSelect.disabled = true; // Disable village select until a circle is selected
+      });
+
+      circleSelect.addEventListener('change', () => {
+        populateVillages(data, districtSelect.value, circleSelect.value);
+      });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+
+  function populateDistricts(data) {
+    data.district.forEach(district => {
+      const option = document.createElement('option');
+      option.value = district.district;
+      option.textContent = district.district;
+      districtSelect.appendChild(option);
+    });
+  }
+
+  function populateCircles(data, selectedDistrict) {
+    circleSelect.innerHTML = '<option value="">Select Circle</option>'; // Reset circles
+    villageSelect.innerHTML = '<option value="">Select Village</option>'; // Reset villages
+    villageSelect.disabled = true; // Disable village select until a circle is selected
+
+    const district = data.district.find(d => d.district === selectedDistrict);
+    if (district) {
+      district.circle.forEach(circle => {
+        const option = document.createElement('option');
+        option.value = circle.circle;
+        option.textContent = circle.circle;
+        circleSelect.appendChild(option);
+      });
+      circleSelect.disabled = false; // Enable circle select
+    } else {
+      circleSelect.disabled = true; // Disable circle select if no district is selected
+    }
+  }
+
+  function populateVillages(data, selectedDistrict, selectedCircle) {
+    villageSelect.innerHTML = '<option value="">Select Village</option>'; // Reset villages
+
+    const district = data.district.find(d => d.district === selectedDistrict);
+    if (district) {
+      const circle = district.circle.find(c => c.circle === selectedCircle);
+      if (circle) {
+        circle.village.forEach(village => {
+          const option = document.createElement('option');
+          option.value = village;
+          option.textContent = village;
+          villageSelect.appendChild(option);
+        });
+        villageSelect.disabled = false; // Enable village select
+      } else {
+        villageSelect.disabled = true; // Disable village select if no circle is selected
+      }
+    }
+  }
+});
+
+function display_toggle_side_Popup(id) {
+  const element = document.getElementById(id);
+  if (element.style.display === "none") {
+    element.style.display = "block";
+  } else {
+    element.style.display = "none";
+  }
+}
+
+
+
+
+
+
+
+
+
 
 
 
