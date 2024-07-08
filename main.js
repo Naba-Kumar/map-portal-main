@@ -828,259 +828,509 @@ map.addControl(mousePos);
 // ---------------------------------------------------------------------------------------------------------------------------------
 // Create a vector source for the state layer
 
+// document.getElementById('selectButton').addEventListener('click', function () {
+
+
+//   const selectedState = document.getElementById('state').value;
+//   const selectedDistrict = document.getElementById('district').value;
+//   console.log("Selected State:", selectedState);
+//   console.log("Selected District:", selectedDistrict);
+
+//   // Function to retrieve coordinates from a feature's geometry
+//   function getCoordinatesFromFeature(feature) {
+//     return feature.getGeometry().getExtent(); // Get the extent of the geometry
+//   }
+
+//   // Create a vector source for the district layer
+//   const existingDistrictLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'districtLayer');
+//   if (existingDistrictLayer) {
+//     map.removeLayer(existingDistrictLayer);
+//   }
+
+//   // Remove previous state layer if exists
+
+//   const existingStateLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'stateLayer');
+//   if (existingStateLayer) {
+//     map.removeLayer(existingStateLayer);
+//   }
+
+//   if (selectedDistrict) {
+
+//     const districtVectorSource = new VectorSource({
+//       url: './india_Districts.geojson', // Replace with your district data URL
+//       format: new GeoJSON()
+//     });
+
+
+//     // Function to create a filter based on state name (adjust property name if needed)
+//     function getDistrictFilter(selected) {
+//       return function (feature) {
+//         return feature.get('distname').toLowerCase() === selected.toLowerCase(); // Modify property name based on your data
+//       };
+//     }
+
+//     // Apply the filter to the source based on selected district
+//     districtVectorSource.once('change', function () {
+//       districtVectorSource.getFeatures().forEach(function (feature) {
+//         if (!getDistrictFilter(selectedDistrict)(feature)) {
+//           districtVectorSource.removeFeature(feature);
+//         } else {
+//           const extent = getCoordinatesFromFeature(feature);
+//           map.getView().fit(extent, { duration: 1000 }); // Fit the map view to the extent of the selected district with animation
+//         }
+//       });
+//     });
+
+
+
+//     // Remove previous district layer if exists
+
+
+
+//     // Create a district vector layer with the filtered source
+//     const districtLayer = new VectorLayer({
+//       source: districtVectorSource,
+//       style: new Style({
+//         stroke: new Stroke({
+//           color: '#a0a',
+//           lineCap: 'butt',
+//           width: 1
+//         }),
+//       })
+//     });
+//     districtLayer.set('name', 'districtLayer');
+
+//     map.addLayer(districtLayer);
+
+//     districtLayer.getSource().on('addfeature', function () {
+
+//       // Get the geometry of the districtLayer
+//       // var districtLayerClipGeometry = districtLayer.getSource().getFeatures()[1].getGeometry();
+
+//       var districtLayerClipGeometry = districtLayer.getSource().getFeatures().find(feature => getDistrictFilter(selectedDistrict)(feature)).getGeometry();
+
+
+//       // console.log(stateLayer.getSource().getFeatures())
+//       // Get the bounding box of the map
+//       // var mapExtent0 = map.getView().calculateExtent(map.getSize());
+
+//       var mapExtent = worldview.calculateExtent(map.getSize());
+
+//       // console.log(mapExtent0)
+//       // console.log(mapExtent)
+
+//       var boundingBoxPolygon = new fromExtent(mapExtent);
+//       console.log(boundingBoxPolygon)
+
+//       // Convert the bounding box polygon to GeoJSON
+//       const format = new GeoJSON();
+
+//       var boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
+
+//       // Convert the districtLayerClipGeometry to GeoJSON
+//       var clipGeoJSON = format.writeGeometryObject(districtLayerClipGeometry);
+//       // console.log(clipGeoJSON())
+
+//       // Subtract the districtLayerClipGeometry from the bounding box geometry
+//       var outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
+
+//       // Convert the resulting GeoJSON back to an OpenLayers feature
+//       var outsideFeature = format.readFeature(outsidePolygonGeoJSON);
+
+//       // Create a vector layer for the outside feature
+//       var outsideVectorLayer = new VectorLayer({
+//         source: new VectorSource({
+//           features: [outsideFeature]
+//         }),
+//         style: new Style({
+//           fill: new Fill({
+//             color: 'rgba(82, 101, 117, 1)' // Semi-transparent red fill (customize as needed)
+//           })
+//         })
+//       });
+
+//       // Add the outside vector layer to the map
+//       outsideVectorLayer.set('name', 'outsideVectorLayer');
+
+//       // Create a vector source for the district layer
+//       const distExistingOutsideLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'outsideVectorLayer');
+//       if (distExistingOutsideLayer) {
+//         map.removeLayer(distExistingOutsideLayer);
+//         console.log("Layer exists and removed");
+//       } else {
+//         console.log("Layer does not exist");
+//       }
+
+//       map.addLayer(outsideVectorLayer);
+//     });
+
+//   }
+
+
+
+//   else if (selectedState) {
+
+//     // Create a vector source for the state layer
+//     const stateVectorSource = new VectorSource({
+//       url: './india_state_geo.json', // Replace with your state data URL
+//       format: new GeoJSON()
+//     });
+//     // Function to create a filter based on state name (adjust property name if needed)
+
+//     function getStateFilter(selected) {
+//       return function (feature) {
+//         return feature.get('NAME_1').toLowerCase() === selected.toLowerCase(); // Modify property name based on your data
+
+//       };
+//     }
+
+
+//     // Apply the filter to the source based on selected state
+//     stateVectorSource.once('change', function () {
+//       stateVectorSource.getFeatures().forEach(function (feature) {
+//         if (!getStateFilter(selectedState)(feature)) {
+//           stateVectorSource.removeFeature(feature);
+//         } else {
+//           const extent = getCoordinatesFromFeature(feature);
+//           // console.log(extent)
+
+
+//           map.getView().fit(extent, { duration: 1000 }); // Fit the map view to the extent of the selected state with animation
+//         }
+//       });
+//     });
+
+//     // Create a state vector layer with the filtered source
+//     const stateLayer = new VectorLayer({
+//       source: stateVectorSource,
+//       style: new Style({
+//         stroke: new Stroke({
+//           color: '#000',
+//           lineCap: 'butt',
+//           width: 1
+//         }),
+//       })
+//     });
+//     stateLayer.set('name', 'stateLayer');
+//     map.addLayer(stateLayer);
+//     // Add the new layers to the map
+//     //
+//     stateLayer.getSource().on('addfeature', function () {
+
+//       // Get the geometry of the stateLayer
+//       // var stateLayerClipGeometry = stateLayer.getSource().getFeatures()[1].getGeometry();
+
+//       var stateLayerClipGeometry = stateLayer.getSource().getFeatures().find(feature => getStateFilter(selectedState)(feature)).getGeometry();
+
+
+//       // console.log(stateLayer.getSource().getFeatures())
+//       // Get the bounding box of the map
+//       // var mapExtent0 = map.getView().calculateExtent(map.getSize());
+
+//       var mapExtent = worldview.calculateExtent(map.getSize());
+
+//       // console.log(mapExtent0)
+//       // console.log(mapExtent)
+
+//       var boundingBoxPolygon = new fromExtent(mapExtent);
+//       console.log(boundingBoxPolygon)
+
+//       // Convert the bounding box polygon to GeoJSON
+//       const format = new GeoJSON();
+
+//       var boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
+
+//       // Convert the stateLayerClipGeometry to GeoJSON
+//       var clipGeoJSON = format.writeGeometryObject(stateLayerClipGeometry);
+//       // console.log(clipGeoJSON())
+
+//       // Subtract the stateLayerClipGeometry from the bounding box geometry
+//       var outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
+
+//       // Convert the resulting GeoJSON back to an OpenLayers feature
+//       var outsideFeature = format.readFeature(outsidePolygonGeoJSON);
+
+//       // Create a vector layer for the outside feature
+//       var outsideVectorLayer = new VectorLayer({
+//         source: new VectorSource({
+//           features: [outsideFeature]
+//         }),
+//         style: new Style({
+//           fill: new Fill({
+//             color: 'rgba(255, 255, 255, 1)' // Semi-transparent red fill (customize as needed)
+//           })
+//         })
+//       });
+
+//       // Add the outside vector layer to the map
+//       outsideVectorLayer.set('name', 'outsideVectorLayer');
+
+//       // Create a vector source for the district layer
+//       const stateExistingOutsideLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'outsideVectorLayer');
+//       if (stateExistingOutsideLayer) {
+//         map.removeLayer(stateExistingOutsideLayer);
+//         console.log("Layer exists and removed");
+//       } else {
+//         console.log("Layer does not exist");
+//       }
+
+//       map.addLayer(outsideVectorLayer);
+//     });
+
+
+//   }
+
+// });
+
+// --------------------------------------
 document.getElementById('selectButton').addEventListener('click', function () {
-
-
   const selectedState = document.getElementById('state').value;
   const selectedDistrict = document.getElementById('district').value;
   console.log("Selected State:", selectedState);
   console.log("Selected District:", selectedDistrict);
 
-  // Function to retrieve coordinates from a feature's geometry
   function getCoordinatesFromFeature(feature) {
-    return feature.getGeometry().getExtent(); // Get the extent of the geometry
+    return feature.getGeometry().getExtent();
   }
 
-  // Create a vector source for the district layer
-  const existingDistrictLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'districtLayer');
-  if (existingDistrictLayer) {
-    map.removeLayer(existingDistrictLayer);
+  function getFilterByProperty(propertyName, value) {
+    return function (feature) {
+      return feature.get(propertyName).toLowerCase() === value.toLowerCase();
+    };
   }
 
-  // Remove previous state layer if exists
-
-  const existingStateLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'stateLayer');
-  if (existingStateLayer) {
-    map.removeLayer(existingStateLayer);
+  function removeExistingLayer(layerName) {
+    const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
+    if (existingLayer) {
+      map.removeLayer(existingLayer);
+    }
   }
 
-  if (selectedDistrict) {
+  function createVectorLayer(source, style, layerName) {
+    const vectorLayer = new VectorLayer({
+      source: source,
+      style: style
+    });
+    vectorLayer.set('name', layerName);
+    return vectorLayer;
+  }
 
-    const districtVectorSource = new VectorSource({
-      url: './india_Districts.geojson', // Replace with your district data URL
+  function addLayerWithGeoJSON(url, propertyName, value, style, layerName) {
+    const vectorSource = new VectorSource({
+      url: url,
       format: new GeoJSON()
     });
 
-
-    // Function to create a filter based on state name (adjust property name if needed)
-    function getDistrictFilter(selected) {
-      return function (feature) {
-        return feature.get('distname').toLowerCase() === selected.toLowerCase(); // Modify property name based on your data
-      };
-    }
-
-    // Apply the filter to the source based on selected district
-    districtVectorSource.once('change', function () {
-      districtVectorSource.getFeatures().forEach(function (feature) {
-        if (!getDistrictFilter(selectedDistrict)(feature)) {
-          districtVectorSource.removeFeature(feature);
+    vectorSource.once('change', function () {
+      vectorSource.forEachFeature(function (feature) {
+        if (!getFilterByProperty(propertyName, value)(feature)) {
+          vectorSource.removeFeature(feature);
         } else {
           const extent = getCoordinatesFromFeature(feature);
-          map.getView().fit(extent, { duration: 1000 }); // Fit the map view to the extent of the selected district with animation
+          map.getView().fit(extent, { duration: 1000 });
         }
       });
     });
 
+    const vectorLayer = createVectorLayer(vectorSource, style, layerName);
+    map.addLayer(vectorLayer);
+    return vectorLayer;
+  }
 
+  function clipOutsidePolygon(clipGeometry, layerName) {
 
-    // Remove previous district layer if exists
+    var mapExtent = worldview.calculateExtent(map.getSize());
 
+    //       // console.log(mapExtent0)
+    //       // console.log(mapExtent)
+    
+    //       var boundingBoxPolygon = new fromExtent(mapExtent);
+    
+    const boundingBoxPolygon = fromExtent(mapExtent);
+    const format = new GeoJSON();
+    const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
+    const clipGeoJSON = format.writeGeometryObject(clipGeometry);
+    const outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
+    const outsideFeature = format.readFeature(outsidePolygonGeoJSON);
 
-
-    // Create a district vector layer with the filtered source
-    const districtLayer = new VectorLayer({
-      source: districtVectorSource,
+    const outsideVectorLayer = new VectorLayer({
+      source: new VectorSource({
+        features: [outsideFeature]
+      }),
       style: new Style({
+        fill: new Fill({
+          color: 'rgba(82, 101, 117, 1)'
+        })
+      })
+    });
+    outsideVectorLayer.set('name', layerName);
+    map.addLayer(outsideVectorLayer);
+  }
+
+  removeExistingLayer('districtLayer');
+  removeExistingLayer('stateLayer');
+  removeExistingLayer('outsideVectorLayer');
+
+  if (selectedDistrict) {
+    const districtLayer = addLayerWithGeoJSON(
+      './india_Districts.geojson', 
+      'distname', 
+      selectedDistrict, 
+      new Style({
         stroke: new Stroke({
           color: '#a0a',
           lineCap: 'butt',
           width: 1
-        }),
-      })
-    });
-    districtLayer.set('name', 'districtLayer');
-
-    map.addLayer(districtLayer);
-
-    districtLayer.getSource().on('addfeature', function () {
-
-      // Get the geometry of the districtLayer
-      // var districtLayerClipGeometry = districtLayer.getSource().getFeatures()[1].getGeometry();
-
-      var districtLayerClipGeometry = districtLayer.getSource().getFeatures().find(feature => getDistrictFilter(selectedDistrict)(feature)).getGeometry();
-
-
-      // console.log(stateLayer.getSource().getFeatures())
-      // Get the bounding box of the map
-      // var mapExtent0 = map.getView().calculateExtent(map.getSize());
-
-      var mapExtent = worldview.calculateExtent(map.getSize());
-
-      // console.log(mapExtent0)
-      // console.log(mapExtent)
-
-      var boundingBoxPolygon = new fromExtent(mapExtent);
-      console.log(boundingBoxPolygon)
-
-      // Convert the bounding box polygon to GeoJSON
-      const format = new GeoJSON();
-
-      var boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
-
-      // Convert the districtLayerClipGeometry to GeoJSON
-      var clipGeoJSON = format.writeGeometryObject(districtLayerClipGeometry);
-      // console.log(clipGeoJSON())
-
-      // Subtract the districtLayerClipGeometry from the bounding box geometry
-      var outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
-
-      // Convert the resulting GeoJSON back to an OpenLayers feature
-      var outsideFeature = format.readFeature(outsidePolygonGeoJSON);
-
-      // Create a vector layer for the outside feature
-      var outsideVectorLayer = new VectorLayer({
-        source: new VectorSource({
-          features: [outsideFeature]
-        }),
-        style: new Style({
-          fill: new Fill({
-            color: 'rgba(82, 101, 117, 1)' // Semi-transparent red fill (customize as needed)
-          })
         })
-      });
+      }), 
+      'districtLayer'
+    );
 
-      // Add the outside vector layer to the map
-      outsideVectorLayer.set('name', 'outsideVectorLayer');
-
-      // Create a vector source for the district layer
-      const distExistingOutsideLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'outsideVectorLayer');
-      if (distExistingOutsideLayer) {
-        map.removeLayer(distExistingOutsideLayer);
-        console.log("Layer exists and removed");
-      } else {
-        console.log("Layer does not exist");
-      }
-
-      map.addLayer(outsideVectorLayer);
+    districtLayer.getSource().once('addfeature', function () {
+      const districtClipGeometry = districtLayer.getSource().getFeatures()
+        .find(feature => getFilterByProperty('distname', selectedDistrict)(feature))
+        .getGeometry();
+      clipOutsidePolygon(districtClipGeometry, 'outsideVectorLayer');
     });
 
-  }
-
-
-
-  else if (selectedState) {
-
-    // Create a vector source for the state layer
-    const stateVectorSource = new VectorSource({
-      url: './india_state_geo.json', // Replace with your state data URL
-      format: new GeoJSON()
-    });
-    // Function to create a filter based on state name (adjust property name if needed)
-
-    function getStateFilter(selected) {
-      return function (feature) {
-        return feature.get('NAME_1').toLowerCase() === selected.toLowerCase(); // Modify property name based on your data
-
-      };
-    }
-
-
-    // Apply the filter to the source based on selected state
-    stateVectorSource.once('change', function () {
-      stateVectorSource.getFeatures().forEach(function (feature) {
-        if (!getStateFilter(selectedState)(feature)) {
-          stateVectorSource.removeFeature(feature);
-        } else {
-          const extent = getCoordinatesFromFeature(feature);
-          // console.log(extent)
-
-
-          map.getView().fit(extent, { duration: 1000 }); // Fit the map view to the extent of the selected state with animation
-        }
-      });
-    });
-
-    // Create a state vector layer with the filtered source
-    const stateLayer = new VectorLayer({
-      source: stateVectorSource,
-      style: new Style({
+  } else if (selectedState) {
+    const stateLayer = addLayerWithGeoJSON(
+      './india_state_geo.json', 
+      'NAME_1', 
+      selectedState, 
+      new Style({
         stroke: new Stroke({
           color: '#000',
           lineCap: 'butt',
           width: 1
-        }),
-      })
-    });
-    stateLayer.set('name', 'stateLayer');
-    map.addLayer(stateLayer);
-    // Add the new layers to the map
-    //
-    stateLayer.getSource().on('addfeature', function () {
-
-      // Get the geometry of the stateLayer
-      // var stateLayerClipGeometry = stateLayer.getSource().getFeatures()[1].getGeometry();
-
-      var stateLayerClipGeometry = stateLayer.getSource().getFeatures().find(feature => getStateFilter(selectedState)(feature)).getGeometry();
-
-
-      // console.log(stateLayer.getSource().getFeatures())
-      // Get the bounding box of the map
-      // var mapExtent0 = map.getView().calculateExtent(map.getSize());
-
-      var mapExtent = worldview.calculateExtent(map.getSize());
-
-      // console.log(mapExtent0)
-      // console.log(mapExtent)
-
-      var boundingBoxPolygon = new fromExtent(mapExtent);
-      console.log(boundingBoxPolygon)
-
-      // Convert the bounding box polygon to GeoJSON
-      const format = new GeoJSON();
-
-      var boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
-
-      // Convert the stateLayerClipGeometry to GeoJSON
-      var clipGeoJSON = format.writeGeometryObject(stateLayerClipGeometry);
-      // console.log(clipGeoJSON())
-
-      // Subtract the stateLayerClipGeometry from the bounding box geometry
-      var outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
-
-      // Convert the resulting GeoJSON back to an OpenLayers feature
-      var outsideFeature = format.readFeature(outsidePolygonGeoJSON);
-
-      // Create a vector layer for the outside feature
-      var outsideVectorLayer = new VectorLayer({
-        source: new VectorSource({
-          features: [outsideFeature]
-        }),
-        style: new Style({
-          fill: new Fill({
-            color: 'rgba(255, 255, 255, 1)' // Semi-transparent red fill (customize as needed)
-          })
         })
-      });
+      }), 
+      'stateLayer'
+    );
 
-      // Add the outside vector layer to the map
-      outsideVectorLayer.set('name', 'outsideVectorLayer');
-
-      // Create a vector source for the district layer
-      const stateExistingOutsideLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'outsideVectorLayer');
-      if (stateExistingOutsideLayer) {
-        map.removeLayer(stateExistingOutsideLayer);
-        console.log("Layer exists and removed");
-      } else {
-        console.log("Layer does not exist");
-      }
-
-      map.addLayer(outsideVectorLayer);
+    stateLayer.getSource().once('addfeature', function () {
+      const stateClipGeometry = stateLayer.getSource().getFeatures()
+        .find(feature => getFilterByProperty('NAME_1', selectedState)(feature))
+        .getGeometry();
+      clipOutsidePolygon(stateClipGeometry, 'outsideVectorLayer');
     });
+  }
+});
 
 
+document.getElementById('village_selectButton').addEventListener('click', function () {
+  const selectedVillage = document.getElementById('village-village').value;
+  console.log("Selected Village:", selectedVillage);
+
+  function getCoordinatesFromFeature(feature) {
+    return feature.getGeometry().getExtent();
   }
 
+  function getFilterByProperty(propertyName, value) {
+    return function (feature) {
+      const propertyValue = feature.get(propertyName);
+      return propertyValue && propertyValue.toLowerCase() === value.toLowerCase();
+    };
+  }
+
+  function removeExistingLayer(layerName) {
+    const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
+    if (existingLayer) {
+      map.removeLayer(existingLayer);
+    }
+  }
+
+  function createVectorLayer(source, style, layerName) {
+    const vectorLayer = new VectorLayer({
+      source: source,
+      style: style
+    });
+    vectorLayer.set('name', layerName);
+    return vectorLayer;
+  }
+
+  function addLayerWithGeoJSON(url, propertyName, value, style, layerName) {
+    const vectorSource = new VectorSource({
+      url: url,
+      format: new GeoJSON()
+    });
+
+    vectorSource.once('change', function () {
+      if (vectorSource.getState() === 'ready') {
+        const features = vectorSource.getFeatures();
+        const filteredFeatures = features.filter(getFilterByProperty(propertyName, value));
+        if (filteredFeatures.length > 0) {
+          const feature = filteredFeatures[0];
+          const extent = getCoordinatesFromFeature(feature);
+          map.getView().fit(extent, { duration: 1000 });
+        } else {
+          console.log("No features found matching the criteria.");
+        }
+      }
+    });
+
+    const vectorLayer = createVectorLayer(vectorSource, style, layerName);
+    map.addLayer(vectorLayer);
+    return vectorLayer;
+  }
+
+  function clipOutsidePolygon(clipGeometry, layerName) {
+    // const mapExtent = map.getView().calculateExtent(map.getSize());
+    var mapExtent = worldview.calculateExtent(map.getSize());
+
+    const boundingBoxPolygon = fromExtent(mapExtent);
+    const format = new GeoJSON();
+    const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
+    const clipGeoJSON = format.writeGeometryObject(clipGeometry);
+    const outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
+    const outsideFeature = format.readFeature(outsidePolygonGeoJSON);
+
+    const outsideVectorLayer = new VectorLayer({
+      source: new VectorSource({
+        features: [outsideFeature]
+      }),
+      style: new Style({
+        fill: new Fill({
+          color: 'rgba(82, 101, 117, 1)'
+        })
+      })
+    });
+    outsideVectorLayer.set('name', layerName);
+    map.addLayer(outsideVectorLayer);
+  }
+
+  removeExistingLayer('VillageLayer');
+  removeExistingLayer('outsideVectorLayer');
+
+  if (selectedVillage) {
+    const villageLayer = addLayerWithGeoJSON(
+      './village_layer.geojson',
+      'villname',
+      selectedVillage,
+      new Style({
+        stroke: new Stroke({
+          color: '#fcba03',
+          lineCap: 'butt',
+          width: 4
+        })
+      }),
+      'VillageLayer'
+    );
+
+    villageLayer.getSource().once('change', function () {
+      const features = villageLayer.getSource().getFeatures();
+      const selectedFeature = features.find(getFilterByProperty('villname', selectedVillage));
+      if (selectedFeature) {
+        const villageClipGeometry = selectedFeature.getGeometry();
+        clipOutsidePolygon(villageClipGeometry, 'outsideVectorLayer');
+      }
+    });
+  }
 });
+
+
+
+// --------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------
 // state dist Layer select tool starts
 
