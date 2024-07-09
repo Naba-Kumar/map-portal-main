@@ -58,23 +58,23 @@
               <li onclick="display_toggle_block_adminState('Boudaries')">Boudaries</li>
               <ul class="side_menu_optin_block, side_menu_cat3" id="Boudaries">
                 <li>
-                  <input type="checkbox" id="stateboundary">
+                  <input type="checkbox" id="stateboundary" class="layer-checkbox">
                   <label for=" stateboundary"> State Boundary</label>
                 </li>
                 <li>
-                  <input type="checkbox" id="DistrictBoundary">
+                  <input type="checkbox" id="DistrictBoundary" class="layer-checkbox">
                   <label for="DistrictBoundary">District Boundary</label>
                 </li>
                 <li>
-                  <input type="checkbox" id="TalukaBoundary">
+                  <input type="checkbox" id="TalukaBoundary" class="layer-checkbox">
                   <label for="TalukaBoundary"> Taluka Boundary</label>
                 </li>
                 <li>
-                  <input type="checkbox" id="VillageBoundary">
+                  <input type="checkbox" id="VillageBoundary" class="layer-checkbox">
                   <label for="VillageBoundary">Village Boundary</label>
                 </li>
                 <li>
-                  <input type="checkbox" id="Grampanchayat">
+                  <input type="checkbox" id="Grampanchayat" class="layer-checkbox">
                   <label for="Grampanchayat"> Grampanchayat</label>
                 </li>
 
@@ -399,7 +399,7 @@
 
 
           <!-- village -->
-           
+
           <li class="sidebar_items" onclick="display_toggle_side_Popup('village_boundary_tool')">
             <span class="material-symbols-outlined">filter_alt</span>
             <ul id="village_boundary_tool" class="side_menu_popup boundary_tool">
@@ -428,7 +428,7 @@
 
           <!-- village -->
 
-          
+
 
           <li class="sidebar_items" onclick="display_toggle_side_Popup('boundary_tool')">
             <span class="material-symbols-outlined">filter_alt</span>
@@ -465,6 +465,11 @@
 
           </li>
 
+            <div id="scale-line-control-cont">
+              <div id='scale-line-control' class="scaleLine">
+              </div>
+            </div>
+
 
         </ul>
 
@@ -496,12 +501,7 @@
 
   </div>
 
-  <div id="scale-line-control-cont">
 
-    <div id='scale-line-control' class="scaleLine">
-    </div>
-
-  </div>
 
 
 
@@ -524,7 +524,7 @@
 
   <div id="map-view">
     <div id="map"></div>
-    <div id="legend" class="legend">
+    <!-- <div id="legend" class="legend"> -->
     </div>
   </div>
 
@@ -539,8 +539,15 @@
   </div>
 
 
+  <div id="villageInfo" style="position: absolute; bottom: 10px; left: 10px; background: white; padding: 10px; border: 1px solid #ccc; z-index: 1000;">
+    <h4>Village Information</h4>
+    <div id="villageDetails"></div>
+  </div>
+  
+
+
   <div id="aboutSection">
-    
+
 
   </div>
 

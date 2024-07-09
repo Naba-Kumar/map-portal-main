@@ -1275,9 +1275,7 @@ document.getElementById('village_selectButton').addEventListener('click', functi
   }
 
   function clipOutsidePolygon(clipGeometry, layerName) {
-    // const mapExtent = map.getView().calculateExtent(map.getSize());
-    var mapExtent = worldview.calculateExtent(map.getSize());
-
+    const mapExtent = map.getView().calculateExtent(map.getSize());
     const boundingBoxPolygon = fromExtent(mapExtent);
     const format = new GeoJSON();
     const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
@@ -1297,6 +1295,21 @@ document.getElementById('village_selectButton').addEventListener('click', functi
     });
     outsideVectorLayer.set('name', layerName);
     map.addLayer(outsideVectorLayer);
+  }
+
+  function displayVillageInfo(feature) {
+    const villageDetails = document.getElementById('villageDetails');
+    const properties = feature.getProperties();
+    let infoHTML = '';
+
+    // Iterate over all properties and display them
+    for (const key in properties) {
+      if (key !== 'geometry') { // Skip the geometry property
+        infoHTML += `<p><strong>${key}:</strong> ${properties[key]}</p>`;
+      }
+    }
+
+    villageDetails.innerHTML = infoHTML;
   }
 
   removeExistingLayer('VillageLayer');
@@ -1323,10 +1336,12 @@ document.getElementById('village_selectButton').addEventListener('click', functi
       if (selectedFeature) {
         const villageClipGeometry = selectedFeature.getGeometry();
         clipOutsidePolygon(villageClipGeometry, 'outsideVectorLayer');
+        displayVillageInfo(selectedFeature);
       }
     });
   }
 });
+
 
 
 
@@ -1393,6 +1408,11 @@ satatecheckbox.addEventListener('change', function () {
       map.removeLayer(existingStateLayer);
     }
   }
+
+  setTimeout(() => {
+    generateLegend()
+    console.log("Delayed for 1 second.");
+  }, "2000");
 });
 
 
@@ -1451,6 +1471,10 @@ districtcheckbox.addEventListener('change', function () {
       map.removeLayer(existingDistrictLayer);
     }
   }
+  setTimeout(() => {
+    generateLegend()
+    console.log("Delayed for 1 second.");
+  }, "2000");
 });
 
 
@@ -1906,14 +1930,14 @@ function generateLegend() {
 
   const legendElement = document.createElement('div');
   legendElement.id = 'legend';
-  legendElement.style.position = 'absolute';
-  legendElement.style.bottom = '100px'; // Adjust as needed
-  legendElement.style.right = '10px'; // Adjust as needed
+  // legendElement.style.position = 'absolute';
+  // legendElement.style.bottom = '100px'; // Adjust as needed
+  // legendElement.style.right = '10px'; // Adjust as needed
   legendElement.style.display = 'flex';
   legendElement.style.flexDirection = 'column';
   legendElement.style.backgroundColor = 'white';
   legendElement.style.padding = '10px';
-  legendElement.style.zIndex = '1000';
+  legendElement.style.zIndex = '10';
 
   const layers = map.getLayers().getArray();
   layers.forEach(layer => {

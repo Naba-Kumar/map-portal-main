@@ -711,6 +711,10 @@ footer  #lonlat_display{
 #scale-line-control-cont {
 
     padding: 40px;
+    position: absolute;
+    left: 670px;
+    bottom: 27px;
+    z-index: 9;
 }
 
 .ol-scale-text{
@@ -722,10 +726,10 @@ footer  #lonlat_display{
     font-size: 13px !important;
     font-weight: bolder !important;
 }
-
+/* 
 #scale-line-control-container{
     padding: 50px;
-}
+} */
 
 canvas {
     border: 3px solid #031716;
@@ -734,7 +738,7 @@ canvas {
 #legend{
     width: 240px;
     position: absolute;
-    bottom: 100px;
+    bottom: 40px;
     right: 20px;
     /* display:flex; */
     /* align-items: center; */
