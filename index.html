@@ -178,31 +178,34 @@
 
             </ul>
           </div>
+      
+
           <div class="side_menu_container_optins">
-            <li onclick="display_toggle_block('search')">Search</li>
-            <div class="side_menu_cat2" id="search">
-              <label for="district">District:</label>
-              <select id="districtrs" name="district">
-                <option value="d1">Darrang</option>
-                <option value="d2">Kamrup</option>
-                <option value="d3">Sunitpur</option>
-                <option value="d4">Udalguri</option>
-              </select>
-              <br>
+            <li onclick="display_toggle_block('village_search')">Search Village</li>
+            <div class="side_menu_cat2" id="village_search">
+              <form id="filterFormVillage">
+                <label for="state">Select District:</label>
+                <select id="village-dist" name="district">
+                    <option value="">Select District</option>
+                </select>
 
-              <label for="Village">Village:</label>
-              <select id="Village" name="Village">
-                <option value="v1">v1</option>
-                <option value="v2">v2</option>
-                <option value="v3">v3</option>
-                <option value="v4">v3</option>
-              </select>
-              <br>
+                <label for="state">Select Circle:</label>
+                <select id="village-circle" name="circle">
+                  <option value="">Select Circle</option>
+                </select>
 
-              <input type="submit" value="submit">
+                <label for="state">Select Village:</label>
+                <select id="village-village" name="village">
+                  <option value="">Select Village</option>
+                </select>
+              </form>
+              <button id="village_selectButton_mask">Masking</button>
+              <button id="village_selectButton_highlight">Highlight</button>
 
             </div>
           </div>
+
+          
           <div class="side_menu_container_optins">
             <li onclick="display_toggle_block('upload')">Upload</li>
             <div class="side_menu_cat2" id="upload">
@@ -404,7 +407,7 @@
             <span class="material-symbols-outlined">filter_alt</span>
             <ul id="village_boundary_tool" class="side_menu_popup boundary_tool">
 
-              <form id="filterFormVillage">
+              <!-- <form id="filterFormVillage">
                 <label for="state">Select District:</label>
                 <select id="village-dist" name="district">
                   <option value="">Select District</option>
@@ -420,7 +423,7 @@
                   <option value="">Select Village</option>
                 </select>
               </form>
-              <button id="village_selectButton">Select</button>
+              <button id="village_selectButton">Select</button> -->
 
 
             </ul>
@@ -455,8 +458,15 @@
             <span class="material-symbols-outlined">filter_alt</span>
             
           </li> -->
-          <li class="sidebar_items">
+          <li class="sidebar_items"  onclick="display_toggle_side_Popup('villageInfo')">
             <span class="material-symbols-outlined">info</span>
+            <!-- <ul id="Print_tool" class=""> -->
+              <div id="villageInfo" >
+                
+                <div id="villageDetails"></div>
+              </div>
+            <!-- </ul> -->
+
 
           </li>
 
@@ -539,10 +549,7 @@
   </div>
 
 
-  <div id="villageInfo" style="position: absolute; bottom: 10px; left: 10px; background: white; padding: 10px; border: 1px solid #ccc; z-index: 1000;">
-    <h4>Village Information</h4>
-    <div id="villageDetails"></div>
-  </div>
+  
   
 
 

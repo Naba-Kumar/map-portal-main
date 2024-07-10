@@ -570,6 +570,40 @@ select:after {
 } */
 
 
+
+#villageInfo{
+    position: absolute;
+    top: 150px;
+    left: 269px;
+    display: none;
+    height: auto;
+    width: 300px;
+    background-color: #a4e7d1;
+    padding: 10px;
+    overflow: hidden;
+    border-radius: 6px;
+    padding: 13px;
+    /* border: 1px solid  #00625A; */
+    /* border-radius: 8px; */
+    
+}
+
+#villageInfo select{
+    width: 90%;
+    border: 1px solid  #00625A;
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#villageInfo.show{
+    display: block;
+}
+
+
+
+
+
 footer {
     position: absolute;
     bottom: 0px;

@@ -1218,7 +1218,8 @@ document.getElementById('selectButton').addEventListener('click', function () {
 });
 
 
-document.getElementById('village_selectButton').addEventListener('click', function () {
+function village_filter(option) {
+  console.log("working");
   const selectedVillage = document.getElementById('village-village').value;
   console.log("Selected Village:", selectedVillage);
 
@@ -1274,40 +1275,75 @@ document.getElementById('village_selectButton').addEventListener('click', functi
     return vectorLayer;
   }
 
-  function clipOutsidePolygon(clipGeometry, layerName) {
-    const mapExtent = map.getView().calculateExtent(map.getSize());
+  function clipOutsidePolygon(clipGeometry, layerName, option) {
+    var mapExtent = worldview.calculateExtent(map.getSize());
     const boundingBoxPolygon = fromExtent(mapExtent);
     const format = new GeoJSON();
     const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
     const clipGeoJSON = format.writeGeometryObject(clipGeometry);
     const outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
     const outsideFeature = format.readFeature(outsidePolygonGeoJSON);
+    const insideFeature = format.readFeature(clipGeoJSON);
 
-    const outsideVectorLayer = new VectorLayer({
-      source: new VectorSource({
-        features: [outsideFeature]
-      }),
-      style: new Style({
-        fill: new Fill({
-          color: 'rgba(82, 101, 117, 1)'
+    if (option === "mask") {
+      const outsideVectorLayer = new VectorLayer({
+        source: new VectorSource({
+          features: [outsideFeature]
+        }),
+        style: new Style({
+          fill: new Fill({
+            color: 'rgba(82, 101, 117, 1)'
+          })
         })
-      })
-    });
-    outsideVectorLayer.set('name', layerName);
-    map.addLayer(outsideVectorLayer);
+      });
+      outsideVectorLayer.set('name', layerName);
+      map.addLayer(outsideVectorLayer);
+    } else if (option === "highlight") {
+      const insideVectorLayer = new VectorLayer({
+        source: new VectorSource({
+          features: [insideFeature]
+        }),
+        style: new Style({
+          stroke: new Stroke({
+            color: '#fcba03',
+            lineCap: 'butt',
+            width: 4
+          }),
+          fill: new Fill({
+            color: 'rgba(82, 11, 117, .6)'
+          })
+        })
+      });
+      insideVectorLayer.set('name', layerName);
+      map.addLayer(insideVectorLayer);
+
+      // map.getView().setZoom(15);
+    }
   }
 
-  function displayVillageInfo(feature) {
+  function calculateAreaAndPerimeter(geometry) {
+    const format = new GeoJSON();
+    const geojson = format.writeGeometryObject(geometry);
+    console.log(geojson);
+    const areaSqMeters = turf.area(geojson);
+    const areaSqKilometers = areaSqMeters / 1e6; // Convert square meters to square kilometers
+    const lengthKm = turf.length(geojson, { units: 'kilometers' });
+    return { area: areaSqKilometers, length: lengthKm };
+  }
+
+  function displayVillageInfo(feature, area, length) {
     const villageDetails = document.getElementById('villageDetails');
     const properties = feature.getProperties();
-    let infoHTML = '';
+    let infoHTML = '<h4 style="text-align: center; margin:10px">Village Information</h4>';
 
-    // Iterate over all properties and display them
     for (const key in properties) {
-      if (key !== 'geometry') { // Skip the geometry property
-        infoHTML += `<p><strong>${key}:</strong> ${properties[key]}</p>`;
+      if (key !== 'geometry') {
+        infoHTML += `<p style="margin-bottom:5px"><strong>${key}:</strong> ${properties[key]}</p>`;
       }
     }
+
+    infoHTML += `<p style="margin-bottom:5px"><strong>Area:</strong> ${area.toFixed(2)} square kilometers</p>`;
+    infoHTML += `<p style="margin-bottom:5px"><strong>Perimeter:</strong> ${length.toFixed(2)} kilometers</p>`;
 
     villageDetails.innerHTML = infoHTML;
   }
@@ -1335,12 +1371,28 @@ document.getElementById('village_selectButton').addEventListener('click', functi
       const selectedFeature = features.find(getFilterByProperty('villname', selectedVillage));
       if (selectedFeature) {
         const villageClipGeometry = selectedFeature.getGeometry();
-        clipOutsidePolygon(villageClipGeometry, 'outsideVectorLayer');
-        displayVillageInfo(selectedFeature);
+        clipOutsidePolygon(villageClipGeometry, 'outsideVectorLayer', option);
+        const { area, length } = calculateAreaAndPerimeter(villageClipGeometry);
+        displayVillageInfo(selectedFeature, area, length);
+        removeExistingLayer('VillageLayer');
+        const infopopup = document.getElementById("villageInfo");
+        infopopup.style.display = "block";
       }
     });
   }
+}
+
+document.getElementById("village_selectButton_mask").addEventListener('click', function () {
+  console.log("working");
+  village_filter("mask");
 });
+
+document.getElementById("village_selectButton_highlight").addEventListener('click', function () {
+  village_filter("highlight");
+});
+
+
+
 
 
 
