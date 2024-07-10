@@ -1264,6 +1264,7 @@ function village_filter(option) {
           const feature = filteredFeatures[0];
           const extent = getCoordinatesFromFeature(feature);
           map.getView().fit(extent, { duration: 1000 });
+
         } else {
           console.log("No features found matching the criteria.");
         }
