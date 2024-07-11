@@ -381,6 +381,118 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  const districtSelectSSA = document.getElementById('ssa-dist');
+  const blockSelectSSA = document.getElementById('ssa-circle');
+  const villageSelectSSA = document.getElementById('ssa-village');
+  const schoolSelectSSA = document.getElementById('ssa-school');
+
+  // Fetch the JSON file containing the district, block, village, and school data
+  fetch('./ssa2022list.json')
+    .then(response => response.json())
+    .then(data => {
+      populateDistrictsSSA(data);
+      
+      districtSelectSSA.addEventListener('change', () => {
+        populateBlocksSSA(data, districtSelectSSA.value);
+        villageSelectSSA.innerHTML = '<option value="">Select Village</option>'; // Reset villages
+        villageSelectSSA.disabled = true; // Disable village select until a block is selected
+        schoolSelectSSA.innerHTML = '<option value="">Select School</option>'; // Reset schools
+        schoolSelectSSA.disabled = true; // Disable school select until a village is selected
+      });
+
+      blockSelectSSA.addEventListener('change', () => {
+        populateVillagesSSA(data, districtSelectSSA.value, blockSelectSSA.value);
+        schoolSelectSSA.innerHTML = '<option value="">Select School</option>'; // Reset schools
+        schoolSelectSSA.disabled = true; // Disable school select until a village is selected
+      });
+
+      villageSelectSSA.addEventListener('change', () => {
+        populateSchoolsSSA(data, districtSelectSSA.value, blockSelectSSA.value, villageSelectSSA.value);
+      });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+
+  function populateDistrictsSSA(data) {
+    data.district.forEach(district => {
+      const option = document.createElement('option');
+      option.value = district.district;
+      option.textContent = district.district;
+      districtSelectSSA.appendChild(option);
+    });
+  }
+
+  function populateBlocksSSA(data, selectedDistrict) {
+    blockSelectSSA.innerHTML = '<option value="">Select Block</option>'; // Reset blocks
+    villageSelectSSA.innerHTML = '<option value="">Select Village</option>'; // Reset villages
+    villageSelectSSA.disabled = true; // Disable village select until a block is selected
+    schoolSelectSSA.innerHTML = '<option value="">Select School</option>'; // Reset schools
+    schoolSelectSSA.disabled = true; // Disable school select until a village is selected
+
+    const district = data.district.find(d => d.district === selectedDistrict);
+    if (district) {
+      district.block.forEach(block => {
+        const option = document.createElement('option');
+        option.value = block.block;
+        option.textContent = block.block;
+        blockSelectSSA.appendChild(option);
+      });
+      blockSelectSSA.disabled = false; // Enable block select
+    } else {
+      blockSelectSSA.disabled = true; // Disable block select if no district is selected
+    }
+  }
+
+  function populateVillagesSSA(data, selectedDistrict, selectedBlock) {
+    villageSelectSSA.innerHTML = '<option value="">Select Village</option>'; // Reset villages
+    schoolSelectSSA.innerHTML = '<option value="">Select School</option>'; // Reset schools
+    schoolSelectSSA.disabled = true; // Disable school select until a village is selected
+
+    const district = data.district.find(d => d.district === selectedDistrict);
+    if (district) {
+      const block = district.block.find(b => b.block === selectedBlock);
+      if (block) {
+        block.village.forEach(village => {
+          const option = document.createElement('option');
+          option.value = village.village;
+          option.textContent = village.village;
+          villageSelectSSA.appendChild(option);
+        });
+        villageSelectSSA.disabled = false; // Enable village select
+      } else {
+        villageSelectSSA.disabled = true; // Disable village select if no block is selected
+      }
+    }
+  }
+
+  function populateSchoolsSSA(data, selectedDistrict, selectedBlock, selectedVillage) {
+    schoolSelectSSA.innerHTML = '<option value="">Select School</option>'; // Reset schools
+
+    const district = data.district.find(d => d.district === selectedDistrict);
+    if (district) {
+      const block = district.block.find(b => b.block === selectedBlock);
+      if (block) {
+        const village = block.village.find(v => v.village === selectedVillage);
+        if (village) {
+          village.school.forEach(school => {
+            const option = document.createElement('option');
+            option.value = school;
+            option.textContent = school;
+            schoolSelectSSA.appendChild(option);
+          });
+          schoolSelectSSA.disabled = false; // Enable school select
+        } else {
+          schoolSelectSSA.disabled = true; // Disable school select if no village is selected
+        }
+      }
+    }
+  }
+});
+
+
+
 function display_toggle_side_Popup(id) {
   const element = document.getElementById(id);
   if (element.style.display === "none") {

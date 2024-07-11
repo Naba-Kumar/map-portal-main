@@ -205,6 +205,35 @@
             </div>
           </div>
 
+
+          <div class="side_menu_container_optins">
+            <li onclick="display_toggle_block('ssadata_search')">Search SSA</li>
+            <div class="side_menu_cat2" id="ssadata_search">
+              <form id="filterFormSSA">
+                <label for="District">Select District:</label>
+                <select id="ssa-dist" name="district">
+                  <option value="">Select District</option>
+                </select>
+          
+                <label for="Block">Select Block:</label>
+                <select id="ssa-circle" name="block">
+                  <option value="">Select Block</option>
+                </select>
+          
+                <label for="Village">Select Village:</label>
+                <select id="ssa-village" name="village">
+                  <option value="">Select Village</option>
+                </select>
+          
+                <label for="School">Select School:</label>
+                <select id="ssa-school" name="school">
+                  <option value="">Select School</option>
+                </select>
+              </form>
+              <button id="ssa_selectButton">Select</button>
+            </div>
+          </div>
+          
           
           <div class="side_menu_container_optins">
             <li onclick="display_toggle_block('upload')">Upload</li>
@@ -403,11 +432,11 @@
 
           <!-- village -->
 
-          <li class="sidebar_items" onclick="display_toggle_side_Popup('village_boundary_tool')">
+          <!-- <li class="sidebar_items" onclick="display_toggle_side_Popup('village_boundary_tool')">
             <span class="material-symbols-outlined">filter_alt</span>
             <ul id="village_boundary_tool" class="side_menu_popup boundary_tool">
 
-              <!-- <form id="filterFormVillage">
+              <form id="filterFormVillage">
                 <label for="state">Select District:</label>
                 <select id="village-dist" name="district">
                   <option value="">Select District</option>
@@ -423,11 +452,11 @@
                   <option value="">Select Village</option>
                 </select>
               </form>
-              <button id="village_selectButton">Select</button> -->
+              <button id="village_selectButton">Select</button>
 
 
             </ul>
-          </li>
+          </li> -->
 
           <!-- village -->
 

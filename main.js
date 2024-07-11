@@ -1264,7 +1264,6 @@ function village_filter(option) {
           const feature = filteredFeatures[0];
           const extent = getCoordinatesFromFeature(feature);
           map.getView().fit(extent, { duration: 1000 });
-
         } else {
           console.log("No features found matching the criteria.");
         }
@@ -1278,12 +1277,14 @@ function village_filter(option) {
 
   function clipOutsidePolygon(clipGeometry, layerName, option) {
     var mapExtent = worldview.calculateExtent(map.getSize());
+
     const boundingBoxPolygon = fromExtent(mapExtent);
     const format = new GeoJSON();
     const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
     const clipGeoJSON = format.writeGeometryObject(clipGeometry);
     const outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
     const outsideFeature = format.readFeature(outsidePolygonGeoJSON);
+
     const insideFeature = format.readFeature(clipGeoJSON);
 
     if (option === "mask") {
@@ -1294,7 +1295,12 @@ function village_filter(option) {
         style: new Style({
           fill: new Fill({
             color: 'rgba(82, 101, 117, 1)'
-          })
+          }),
+          stroke: new Stroke({
+            color: '#fcba03',
+            lineCap: 'butt',
+            width: 4
+          }),
         })
       });
       outsideVectorLayer.set('name', layerName);
@@ -1311,28 +1317,16 @@ function village_filter(option) {
             width: 4
           }),
           fill: new Fill({
-            color: 'rgba(82, 11, 117, .6)'
+            color: 'rgba(9, 0, 255, .3)'
           })
         })
       });
       insideVectorLayer.set('name', layerName);
       map.addLayer(insideVectorLayer);
-
-      // map.getView().setZoom(15);
     }
   }
 
-  function calculateAreaAndPerimeter(geometry) {
-    const format = new GeoJSON();
-    const geojson = format.writeGeometryObject(geometry);
-    console.log(geojson);
-    const areaSqMeters = turf.area(geojson);
-    const areaSqKilometers = areaSqMeters / 1e6; // Convert square meters to square kilometers
-    const lengthKm = turf.length(geojson, { units: 'kilometers' });
-    return { area: areaSqKilometers, length: lengthKm };
-  }
-
-  function displayVillageInfo(feature, area, length) {
+  function displayVillageInfo(feature) {
     const villageDetails = document.getElementById('villageDetails');
     const properties = feature.getProperties();
     let infoHTML = '<h4 style="text-align: center; margin:10px">Village Information</h4>';
@@ -1342,9 +1336,6 @@ function village_filter(option) {
         infoHTML += `<p style="margin-bottom:5px"><strong>${key}:</strong> ${properties[key]}</p>`;
       }
     }
-
-    infoHTML += `<p style="margin-bottom:5px"><strong>Area:</strong> ${area.toFixed(2)} square kilometers</p>`;
-    infoHTML += `<p style="margin-bottom:5px"><strong>Perimeter:</strong> ${length.toFixed(2)} kilometers</p>`;
 
     villageDetails.innerHTML = infoHTML;
   }
@@ -1373,9 +1364,8 @@ function village_filter(option) {
       if (selectedFeature) {
         const villageClipGeometry = selectedFeature.getGeometry();
         clipOutsidePolygon(villageClipGeometry, 'outsideVectorLayer', option);
-        const { area, length } = calculateAreaAndPerimeter(villageClipGeometry);
-        displayVillageInfo(selectedFeature, area, length);
-        removeExistingLayer('VillageLayer');
+        displayVillageInfo(selectedFeature);
+        removeExistingLayer('VillageLayer');  // Remove the village layer after highlighting
         const infopopup = document.getElementById("villageInfo");
         infopopup.style.display = "block";
       }
@@ -1391,6 +1381,8 @@ document.getElementById("village_selectButton_mask").addEventListener('click', f
 document.getElementById("village_selectButton_highlight").addEventListener('click', function () {
   village_filter("highlight");
 });
+
+
 
 
 
