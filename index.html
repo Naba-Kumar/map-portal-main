@@ -205,6 +205,29 @@
             </div>
           </div>
 
+          <div class="side_menu_container_optins">
+            <li onclick="display_toggle_block('assam_state_dist_search')">Search Assam</li>
+            <div class="side_menu_cat2" id="assam_state_dist_search">
+              <form id="assamFilterForm">
+                <label for="assam-state">Select State:</label>
+                <select id="assam-state" name="state">
+                  <option value="assam">Assam</option>
+                </select>
+
+                <label for="assam-district">Select District:</label>
+                <select id="assam-district" name="district">
+                  <option value="">Select District</option>
+                </select>
+
+              </form>
+              <button id="assam-state-dist-mask">Mask</button>
+              <button id="assam-state-dist-highlight">Highlight</button>
+              <button id="assam-state-dist-clear">clear</button>
+
+
+            </div>
+          </div>
+
 
           <div class="side_menu_container_optins">
             <li onclick="display_toggle_block('ssadata_search')">Search SSA</li>
@@ -231,6 +254,30 @@
                 </select>
               </form>
               <button id="ssa_selectButton">Select</button>
+              <button id="ssa_clearButton">Select</button>
+
+            </div>
+          </div>
+
+
+          <div class="side_menu_container_optins">
+            <li onclick="display_toggle_block('buffer_search')">Create Buffer</li>
+            <div class="side_menu_cat2" id="buffer_search">
+              <form id="bufferForm">
+                <label for="layer">Select Layer:</label>
+                <select id="Buffer-layer" name="layer">
+                  <option value="village">Village Data</option>
+                  <option value="ssa">SSA Data 2022</option>
+                </select>
+          
+                
+                <label for="School">Select School:</label>
+                <input type="number" id="buffer-radius" placeholder="Enter Radious in meter">
+
+              </form>
+              <button id="createBuffer">Create</button>
+              <button id="clearBuffer">Clear</button>
+
             </div>
           </div>
           

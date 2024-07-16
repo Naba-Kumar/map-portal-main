@@ -270,7 +270,7 @@ ul{
 }
 
 .side_menu_container_optins div input[type="submit"], button {
-    margin: 10px;
+    margin-top: 18px;
     background-color: #03822b;
     border-radius: 6px;
     border:1px solid #013311;
@@ -280,8 +280,8 @@ ul{
   }
 
   .side_menu_container_optins div  button {
-    padding: 7px;
-    margin-left: 10px;
+    padding: 11px;
+    /* margin-left: 10px; */
 
 
 
@@ -532,7 +532,7 @@ select:after {
 
 #pindrop_tool{
     position: absolute;
-    top: 372px;
+    top: 332px;
     left: 268px;
     height: 180px;
     display: none;
@@ -576,11 +576,11 @@ select:after {
     top: 150px;
     left: 269px;
     display: none;
-    height: auto;
-    width: 300px;
+    max-height: 400px;
+    min-width: 300px;
     background-color: #a4e7d1;
     padding: 10px;
-    overflow: hidden;
+    overflow: scroll;
     border-radius: 6px;
     padding: 13px;
     /* border: 1px solid  #00625A; */

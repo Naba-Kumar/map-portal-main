@@ -10,6 +10,7 @@ import { Projection, fromLonLat } from 'ol/proj';
 import Draw from 'ol/interaction/Draw.js';
 import Overlay from 'ol/Overlay.js';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style.js';
+import Circle from 'ol/geom/Circle.js';
 import { LineString, Polygon } from 'ol/geom.js';
 import { Vector as VectorSource } from 'ol/source.js';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer.js';
@@ -35,6 +36,7 @@ import { fromCircle } from 'ol/geom/Polygon';
 import WKT from 'ol/format/WKT.js';
 import html2canvas from 'html2canvas';
 import ScaleLine from 'ol/control/ScaleLine.js';
+import { transform } from 'ol/proj';
 
 
 const osm = new TileLayer({
@@ -705,7 +707,8 @@ document.getElementById('locate_Pindrop').addEventListener('click', function () 
   let pinStyle = new Style({
     image: new Icon({
       anchor: [0.5, 1],
-      src: './modules/pin.png' // URL to the pin icon
+      src: './modules/pin.png', // URL to the pin icon
+      scale: 0.1
     })
   });
 
@@ -1143,9 +1146,9 @@ document.getElementById('selectButton').addEventListener('click', function () {
 
     //       // console.log(mapExtent0)
     //       // console.log(mapExtent)
-    
+
     //       var boundingBoxPolygon = new fromExtent(mapExtent);
-    
+
     const boundingBoxPolygon = fromExtent(mapExtent);
     const format = new GeoJSON();
     const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
@@ -1173,16 +1176,16 @@ document.getElementById('selectButton').addEventListener('click', function () {
 
   if (selectedDistrict) {
     const districtLayer = addLayerWithGeoJSON(
-      './india_Districts.geojson', 
-      'distname', 
-      selectedDistrict, 
+      './india_Districts.geojson',
+      'distname',
+      selectedDistrict,
       new Style({
         stroke: new Stroke({
           color: '#a0a',
           lineCap: 'butt',
           width: 1
         })
-      }), 
+      }),
       'districtLayer'
     );
 
@@ -1195,16 +1198,16 @@ document.getElementById('selectButton').addEventListener('click', function () {
 
   } else if (selectedState) {
     const stateLayer = addLayerWithGeoJSON(
-      './india_state_geo.json', 
-      'NAME_1', 
-      selectedState, 
+      './india_state_geo.json',
+      'NAME_1',
+      selectedState,
       new Style({
         stroke: new Stroke({
           color: '#000',
           lineCap: 'butt',
           width: 1
         })
-      }), 
+      }),
       'stateLayer'
     );
 
@@ -1346,7 +1349,7 @@ function village_filter(option) {
   if (selectedVillage) {
     const villageLayer = addLayerWithGeoJSON(
       './village_layer.geojson',
-      'villname',
+      'Village',
       selectedVillage,
       new Style({
         stroke: new Stroke({
@@ -1360,7 +1363,7 @@ function village_filter(option) {
 
     villageLayer.getSource().once('change', function () {
       const features = villageLayer.getSource().getFeatures();
-      const selectedFeature = features.find(getFilterByProperty('villname', selectedVillage));
+      const selectedFeature = features.find(getFilterByProperty('Village', selectedVillage));
       if (selectedFeature) {
         const villageClipGeometry = selectedFeature.getGeometry();
         clipOutsidePolygon(villageClipGeometry, 'outsideVectorLayer', option);
@@ -1385,8 +1388,129 @@ document.getElementById("village_selectButton_highlight").addEventListener('clic
 
 
 
+// 
+// 
+// 
+
+document.getElementById('ssa_selectButton').addEventListener('click', function () {
+  const selectedDistrict = document.getElementById('ssa-dist').value;
+  const selectedBlock = document.getElementById('ssa-circle').value;
+  const selectedVillage = document.getElementById('ssa-village').value;
+  const selectedSchool = document.getElementById('ssa-school').value;
+
+  console.log("Selected District:", selectedDistrict);
+  console.log("Selected Block:", selectedBlock);
+  console.log("Selected Village:", selectedVillage);
+  console.log("Selected School:", selectedSchool);
+
+  function getFilterByProperties(properties) {
+    return function (feature) {
+      for (const property in properties) {
+        if (properties[property] && feature.get(property).toLowerCase() !== properties[property].toLowerCase()) {
+          return false;
+        }
+      }
+      return true;
+    };
+  }
 
 
+  function removeExistingLayer(layerName) {
+    const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
+    if (existingLayer) {
+      map.removeLayer(existingLayer);
+    }
+  }
+
+  function createVectorLayer(source, style, layerName) {
+    const vectorLayer = new VectorLayer({
+      source: source,
+      style: style
+    });
+    vectorLayer.set('name', layerName);
+    return vectorLayer;
+  }
+
+  function addLayerWithGeoJSON(url, properties, style, layerName) {
+    const vectorSource = new VectorSource({
+      url: url,
+      format: new GeoJSON()
+    });
+
+    vectorSource.once('change', function () {
+      vectorSource.forEachFeature(function (feature) {
+        if (!getFilterByProperties(properties)(feature)) {
+          vectorSource.removeFeature(feature);
+        } else {
+          const coordinates = feature.getGeometry().getCoordinates();
+          map.getView().animate({ center: coordinates, zoom: 15, duration: 1000 });
+        }
+      });
+    });
+
+    const vectorLayer = createVectorLayer(vectorSource, style, layerName);
+    map.addLayer(vectorLayer);
+    return vectorLayer;
+  }
+
+  removeExistingLayer('ssaLayer');
+
+  const properties = {
+    District: selectedDistrict,
+    Block: selectedBlock,
+    Village: selectedVillage,
+    School: selectedSchool
+  };
+
+  function getFilterByProperty(propertyName, value) {
+    return function (feature) {
+      const propertyValue = feature.get(propertyName);
+      return propertyValue && propertyValue.toLowerCase() === value.toLowerCase();
+    };
+  }
+
+  function displaySchoolInfo(feature) {
+    const villageDetails = document.getElementById('villageDetails');
+    const properties = feature.getProperties();
+    let infoHTML = '<h4 style="text-align: center; margin:10px">School Information</h4>';
+
+    for (const key in properties) {
+      if (key !== 'geometry') {
+        infoHTML += `<p style="margin-bottom:5px"><strong>${key}:</strong> ${properties[key]}</p>`;
+      }
+    }
+
+    villageDetails.innerHTML = infoHTML;
+  }
+
+  const ssaLayer = addLayerWithGeoJSON(
+    './SSA_DATA_20222.geojson',
+    properties,
+    new Style({
+      image: new Icon({
+        // anchor: [0.5, 0.5],
+        src: './modules/school.png',// URL to the pin icon
+        scale: .1,
+        zIndex: 10
+      })
+    }),
+    'ssaLayer'
+  );
+
+  ssaLayer.getSource().once('change', function () {
+    const features = ssaLayer.getSource().getFeatures();
+    const selectedFeature = features.find(getFilterByProperty('School', selectedSchool));
+    if (selectedFeature) {
+      displaySchoolInfo(selectedFeature);
+      const infopopup = document.getElementById("villageInfo");
+      infopopup.style.display = "block";
+    }
+  });
+});
+
+document.getElementById('ssa_selectButton').addEventListener('click', function () {
+  
+})
 
 
 
@@ -2094,7 +2218,7 @@ const processCanvas = (width, height, canvases, mapContext, callback) => {
   requestAnimationFrame(() => processCanvas(width, height, canvases, mapContext, callback));
 };
 
-const exportMap = async() => {
+const exportMap = async () => {
   const format = document.getElementById('format').value;
   const resolution = document.getElementById('resolution').value;
   // const format = 'a5';
@@ -2107,7 +2231,7 @@ const exportMap = async() => {
 
   // Generate the legend before render complete
   generateLegend();
-  
+
 
   map.once('rendercomplete', function () {
     const mapCanvas = document.createElement('canvas');
@@ -2197,7 +2321,7 @@ const exportMap = async() => {
               const scaleLineHeight = scaleLineCanvas.height * scaleFactor;
 
               // Draw the scale line on the map context, ensuring it fits correctly
-              mapContext.drawImage(scaleLineCanvas, width*.85 - scaleLineWidth, height  - scaleLineHeight, scaleLineWidth * 0.8, scaleLineHeight * 0.8);
+              mapContext.drawImage(scaleLineCanvas, width * .85 - scaleLineWidth, height - scaleLineHeight, scaleLineWidth * 0.8, scaleLineHeight * 0.8);
 
               // Additional Text Section
               const additionalTextSection = document.createElement('div');
@@ -2222,7 +2346,7 @@ const exportMap = async() => {
                 const additionalTextWidth = width * 0.17;
                 const additionalTextHeight = additionalTextCanvas.height * additionalTextWidth / additionalTextCanvas.width;
 
-                mapContext.drawImage(additionalTextCanvas, width * 0.82, 20, additionalTextWidth , additionalTextHeight);
+                mapContext.drawImage(additionalTextCanvas, width * 0.82, 20, additionalTextWidth, additionalTextHeight);
 
                 // mapContext.drawImage(additionalTextCanvas, width * 0.82, 20, width * 0.8, height*0.1 );
                 // mapContext.drawImage(aboutCanvas, 20, 20, width * 0.8, height * 0.1);
@@ -2334,4 +2458,390 @@ ziButton.addEventListener('click', () => {
   map.addInteraction(zoomininteraction);
 })
 
+// buffer starts
 
+const bufferSource = new VectorSource();
+
+
+const drawPointBuffer = new Draw({
+  source: bufferSource,
+  type: 'Point'
+});
+
+// Event listener for draw end
+
+  const bufferLayer = new VectorLayer({
+    source: bufferSource,
+  });
+  map.addLayer(bufferLayer);
+
+document.getElementById('createBuffer').addEventListener('click', () => {
+  
+  map.addInteraction(drawPointBuffer);
+});
+
+document.getElementById('clearBuffer').addEventListener('click', () => {
+  console.log("clearBuffer")
+  console.log("clearBuffer");
+
+    // Remove all features from the buffer source
+    bufferSource.clear();
+
+    // Remove any existing buffer layers
+    function removeExistingLayer(layerName) {
+        const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
+        if (existingLayer) {
+            map.removeLayer(existingLayer);
+        }
+    }
+
+    removeExistingLayer('bufferLayer');
+  // removeExistingLayer('stateLayer');
+  // removeExistingLayer('outsideVectorLayer');
+  return
+});
+
+drawPointBuffer.on('drawend', async (event) => {
+
+  const feature = event.feature;
+  const coordinates = feature.getGeometry().getCoordinates();
+  const lonLat = new transform(coordinates, map.getView().getProjection(), 'EPSG:4326');
+  const radius = parseFloat(document.getElementById('buffer-radius').value);
+  const [lon, lat] = lonLat;
+
+  if (isNaN(lat) || isNaN(lon) || isNaN(radius)) {
+    alert('Please enter valid latitude, longitude, and radius.');
+    return;
+  }
+
+  // Create a point and buffer using Turf.js
+  const point = turf.point([lon, lat]);
+  const buffer = turf.buffer(point, radius, { units: 'meters' });
+
+  // Transform buffer coordinates to map projection
+  const bufferCoords = buffer.geometry.coordinates[0].map(coord => new transform(coord, 'EPSG:4326', map.getView().getProjection()));
+
+  // Create a buffer feature and add it to the vector source
+  const bufferFeature = new Feature({
+    geometry: new Polygon([bufferCoords])
+  });
+  bufferSource.addFeature(bufferFeature);
+
+  // const bufferSource = new ol.source.Vector();
+  // const bufferLayer = new VectorLayer({
+  //   source: bufferSource,
+  // });
+  // map.addLayer(bufferLayer);
+
+
+  // Calculate the center of the buffer
+  const bufferCenter = turf.center(buffer).geometry.coordinates;
+  const centerCoords = transform(bufferCenter, 'EPSG:4326', map.getView().getProjection());
+
+  // Create a feature for the center point
+  const centerFeature = new Feature({
+    geometry: new Point(centerCoords)
+  });
+  bufferSource.addFeature(centerFeature);
+
+  // Style the center point with an icon
+  centerFeature.setStyle(
+    new Style({
+      image: new Icon({
+        src: './modules/pin.svg', // Path to your icon image
+        scale: 1, // Adjust the scale as needed
+      })
+    })
+  );
+
+  // Highlight the buffer region
+  console.log(bufferFeature)
+  bufferFeature.setStyle(
+    new Style({
+      fill: new Fill({
+        color: 'rgba(255, 0, 0, .1)'
+      }),
+      stroke: new Stroke({
+        color: '#FF0000',
+        width: 2
+      }),
+      zIndex: 9
+    })
+  );
+
+  let lyr = document.getElementById("Buffer-layer").value
+
+  let workspace = "WS_ONE";
+  let datastore = "SSA_DATA_20222";
+
+  // Fetch features from the WMS layer within the buffer's bounding box
+  const bbox = turf.bbox(buffer).join(',');
+  const url = `http://localhost:8080/geoserver/${workspace}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${datastore}&outputFormat=application/json&bbox=${bbox}`;
+  const response = await fetch(url);
+  const geojson = await response.json();
+
+  const format = new GeoJSON();
+  const bufferFeatures = format.readFeatures(geojson, {
+    featureProjection: map.getView().getProjection()
+  });
+
+  console.log('Fetched features:', bufferFeatures); // Add this line to check if features are being fetched
+
+
+
+  // Create popup content
+
+
+  // Create popup content as a table
+  const content = document.getElementById('villageDetails');
+  content.innerHTML = `<h3>Number of features: ${bufferFeatures.length}</h3> <br>`;
+
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  let uniqueKeys = new Set();
+  bufferFeatures.forEach(feature => {
+    const properties = feature.getProperties();
+    Object.keys(properties).forEach(key => uniqueKeys.add(key));
+  });
+
+  let headers = Array.from(uniqueKeys).filter(key => key !== 'geometry');
+
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headers.forEach(key => {
+    const th = document.createElement('th');
+    th.textContent = key;
+    th.style.border = '1px solid #ccc';
+    th.style.padding = '5px';
+    headerRow.appendChild(th);
+  });
+
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  bufferFeatures.forEach(feature => {
+    const row = document.createElement('tr');
+    const attributes = feature.getProperties();
+    delete attributes.geometry; // Remove the geometry property
+    headers.forEach(header => {
+      const td = document.createElement('td');
+      td.textContent = attributes[header];
+      td.style.border = '1px solid #ccc';
+      td.style.padding = '5px';
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+
+  content.appendChild(table);
+
+  // Show popup at the center of the buffer
+
+  // displaySchoolInfo(selectedFeature);
+  const infopopup = document.getElementById("villageInfo");
+  infopopup.style.display = "block";
+
+  map.removeInteraction(drawPointBuffer);
+
+});
+
+
+// 
+// 
+// 
+// 
+// 
+
+
+async function assamStateDistFilter(option) {
+
+  if(option==="clear"){
+    removeExistingLayer('districtLayer');
+    removeExistingLayer('stateLayer');
+    removeExistingLayer('outsideVectorLayer');
+    return
+  }
+  const selectedState = document.getElementById('assam-state').value;
+  const selectedDistrict = document.getElementById('assam-district').value;
+  console.log("Selected State:", selectedState);
+  console.log("Selected District:", selectedDistrict);
+
+  function getCoordinatesFromFeature(feature) {
+    return feature.getGeometry().getExtent();
+  }
+
+  function getFilterByProperty(propertyName, value) {
+    return function (feature) {
+      return feature.get(propertyName).toLowerCase() === value.toLowerCase();
+    };
+  }
+
+  function removeExistingLayer(layerName) {
+    const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
+    if (existingLayer) {
+      map.removeLayer(existingLayer);
+    }
+  }
+
+  function createVectorLayer(source, style, layerName) {
+    const vectorLayer = new VectorLayer({
+      source: source,
+      style: style
+    });
+    vectorLayer.set('name', layerName);
+    return vectorLayer;
+  }
+
+  function addLayerWithGeoJSON(url, propertyName, value, style, layerName) {
+    const vectorSource = new VectorSource({
+      url: url,
+      format: new GeoJSON()
+    });
+
+    vectorSource.once('change', function () {
+      vectorSource.forEachFeature(function (feature) {
+        if (!getFilterByProperty(propertyName, value)(feature)) {
+          vectorSource.removeFeature(feature);
+        } else {
+          const extent = getCoordinatesFromFeature(feature);
+          map.getView().fit(extent, { duration: 1000 });
+        }
+      });
+    });
+
+    const vectorLayer = createVectorLayer(vectorSource, style, layerName);
+    map.addLayer(vectorLayer);
+    return vectorLayer;
+  }
+
+  function clipOutsidePolygon(clipGeometry, layerName) {
+
+    var mapExtent = worldview.calculateExtent(map.getSize());
+
+    //       // console.log(mapExtent0)
+    //       // console.log(mapExtent)
+
+    //       var boundingBoxPolygon = new fromExtent(mapExtent);
+
+    const boundingBoxPolygon = fromExtent(mapExtent);
+    const format = new GeoJSON();
+    const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
+    const clipGeoJSON = format.writeGeometryObject(clipGeometry);
+    const outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
+    const outsideFeature = format.readFeature(outsidePolygonGeoJSON);
+    const insideFeature = format.readFeature(clipGeoJSON);
+
+    if (option === "mask") {
+      const outsideVectorLayer = new VectorLayer({
+        source: new VectorSource({
+          features: [outsideFeature]
+        }),
+        style: new Style({
+          fill: new Fill({
+            color: 'rgba(82, 101, 117, 1)'
+          }),
+          stroke: new Stroke({
+            color: '#fcba03',
+            lineCap: 'butt',
+            width: 4
+          }),
+        })
+      });
+      outsideVectorLayer.set('name', layerName);
+      map.addLayer(outsideVectorLayer);
+    } else if (option === "highlight") {
+      const insideVectorLayer = new VectorLayer({
+        source: new VectorSource({
+          features: [insideFeature]
+        }),
+        style: new Style({
+          stroke: new Stroke({
+            color: '#fcba03',
+            lineCap: 'butt',
+            width: 4
+          }),
+          fill: new Fill({
+            color: 'rgba(9, 0, 255, .3)'
+          })
+        })
+      });
+      insideVectorLayer.set('name', layerName);
+      map.addLayer(insideVectorLayer);
+    }
+
+    // const outsideVectorLayer = new VectorLayer({
+    //   source: new VectorSource({
+    //     features: [outsideFeature]
+    //   }),
+    //   style: new Style({
+    //     fill: new Fill({
+    //       color: 'rgba(82, 101, 117, 1)'
+    //     })
+    //   })
+    // });
+    // outsideVectorLayer.set('name', layerName);
+    // map.addLayer(outsideVectorLayer);
+  }
+
+  removeExistingLayer('districtLayer');
+  removeExistingLayer('stateLayer');
+  removeExistingLayer('outsideVectorLayer');
+
+  if (selectedDistrict) {
+    const districtLayer = addLayerWithGeoJSON(
+      './assamStateDist.geojson',
+      'dtname',
+      selectedDistrict,
+      new Style({
+        stroke: new Stroke({
+          color: '#a0a',
+          lineCap: 'butt',
+          width: 1
+        })
+      }),
+      'districtLayer'
+    );
+
+    districtLayer.getSource().once('addfeature', function () {
+      const districtClipGeometry = districtLayer.getSource().getFeatures()
+        .find(feature => getFilterByProperty('dtname', selectedDistrict)(feature))
+        .getGeometry();
+      clipOutsidePolygon(districtClipGeometry, 'outsideVectorLayer');
+    });
+
+  } else if (selectedState) {
+    const stateLayer = addLayerWithGeoJSON(
+      './india_state_geo.json',
+      'NAME_1',
+      selectedState,
+      new Style({
+        stroke: new Stroke({
+          color: '#000',
+          lineCap: 'butt',
+          width: 1
+        })
+      }),
+      'stateLayer'
+    );
+
+    stateLayer.getSource().once('addfeature', function () {
+      const stateClipGeometry = stateLayer.getSource().getFeatures()
+        .find(feature => getFilterByProperty('NAME_1', selectedState)(feature))
+        .getGeometry();
+      clipOutsidePolygon(stateClipGeometry, 'outsideVectorLayer');
+    });
+  }
+};
+
+document.getElementById('assam-state-dist-mask').addEventListener('click', function () {
+  assamStateDistFilter("mask")})
+
+document.getElementById('assam-state-dist-highlight').addEventListener('click', function () {
+  assamStateDistFilter("highlight")
+})
+document.getElementById('assam-state-dist-clear').addEventListener('click', function () {
+  assamStateDistFilter("clear")
+})

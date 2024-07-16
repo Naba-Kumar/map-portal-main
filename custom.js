@@ -175,6 +175,51 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+// 
+// assam select
+
+document.addEventListener("DOMContentLoaded", async function () {
+
+
+  // Function to populate the district dropdown
+  function populateAssamDistricts(districts) {
+    const districtSelect = document.getElementById('assam-district');
+    districtSelect.innerHTML = '<option value="">Select District</option>';
+    districts.forEach(district => {
+      const option = document.createElement('option');
+      option.value = district.toLowerCase().replace(/\s+/g, '-');
+      option.textContent = district;
+      districtSelect.appendChild(option);
+    });
+  }
+  const assamDist = await fetchJSON('./assamdist.json')
+  
+  // Event listener for state selection
+  document.getElementById('assam-state').addEventListener('change', async function () {
+    const selectedState = this.value;
+    if (selectedState === 'assam') {
+      populateAssamDistricts(assamDist.districts);
+    } else {
+      document.getElementById('assam-district').innerHTML = '<option value="">Select District</option>';
+    }
+  });
+  
+  // Initial population of districts if Assam is preselected
+  if (document.getElementById('assam-state').value === 'assam') {
+    populateAssamDistricts(assamDist.districts);
+  }
+  
+  function display_toggle_block(id) {
+    const element = document.getElementById(id);
+    if (element.style.display === "none" || element.style.display === "") {
+      element.style.display = "block";
+    } else {
+      element.style.display = "none";
+    }
+  
+  }
+  })
+
 
 // --------------------------------------------------------
 // Layer select
