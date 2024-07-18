@@ -1,7 +1,7 @@
 
 import './style.css';
 import 'ol-layerswitcher/dist/ol-layerswitcher.css';
-
+import { extend as olExtend, createEmpty } from 'ol/extent'
 import { Map, View } from 'ol';
 import OSM from 'ol/source/OSM';
 // import {FullScreen, defaults as defaultControls} from 'ol/control.js';
@@ -1086,165 +1086,21 @@ map.addControl(mousePos);
 // });
 
 // --------------------------------------
-document.getElementById('selectButton').addEventListener('click', function () {
-  const selectedState = document.getElementById('state').value;
-  const selectedDistrict = document.getElementById('district').value;
-  console.log("Selected State:", selectedState);
-  console.log("Selected District:", selectedDistrict);
-
-
-  function getCoordinatesFromFeature(feature) {
-    return feature.getGeometry().getExtent();
-  }
-
-  function getFilterByProperty(propertyName, value) {
-    return function (feature) {
-      return feature.get(propertyName).toLowerCase() === value.toLowerCase();
-    };
-  }
-
-  function removeExistingLayer(layerName) {
-    const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
-    if (existingLayer) {
-      map.removeLayer(existingLayer);
-    }
-  }
-
-  function createVectorLayer(source, style, layerName) {
-    const vectorLayer = new VectorLayer({
-      source: source,
-      style: style
-    });
-    vectorLayer.set('name', layerName);
-    return vectorLayer;
-  }
-
-  function addLayerWithGeoJSON(url, propertyName, value, style, layerName) {
-    const vectorSource = new VectorSource({
-      url: url,
-      format: new GeoJSON()
-    });
-
-    vectorSource.once('change', function () {
-      vectorSource.forEachFeature(function (feature) {
-        if (!getFilterByProperty(propertyName, value)(feature)) {
-          vectorSource.removeFeature(feature);
-        } else {
-          const extent = getCoordinatesFromFeature(feature);
-          map.getView().fit(extent, { duration: 1000 });
-        }
-      });
-    });
-
-    const vectorLayer = createVectorLayer(vectorSource, style, layerName);
-    map.addLayer(vectorLayer);
-    return vectorLayer;
-  }
-
-  function clipOutsidePolygon(clipGeometry, layerName) {
-
-    var mapExtent = worldview.calculateExtent(map.getSize());
-
-    //       // console.log(mapExtent0)
-    //       // console.log(mapExtent)
-
-    //       var boundingBoxPolygon = new fromExtent(mapExtent);
-
-    const boundingBoxPolygon = fromExtent(mapExtent);
-    const format = new GeoJSON();
-    const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
-    const clipGeoJSON = format.writeGeometryObject(clipGeometry);
-    const outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
-    const outsideFeature = format.readFeature(outsidePolygonGeoJSON);
-
-    const outsideVectorLayer = new VectorLayer({
-      source: new VectorSource({
-        features: [outsideFeature]
-      }),
-      style: new Style({
-        fill: new Fill({
-          color: 'rgba(82, 101, 117, 1)'
-        })
-      })
-    });
-    outsideVectorLayer.set('name', layerName);
-    map.addLayer(outsideVectorLayer);
-  }
-
-  removeExistingLayer('districtLayer');
-  removeExistingLayer('stateLayer');
-  removeExistingLayer('outsideVectorLayer');
-
-  if (selectedDistrict) {
-    const districtLayer = addLayerWithGeoJSON(
-      './india_Districts.geojson',
-      'distname',
-      selectedDistrict,
-      new Style({
-        stroke: new Stroke({
-          color: '#a0a',
-          lineCap: 'butt',
-          width: 1
-        })
-      }),
-      'districtLayer'
-    );
-
-    districtLayer.getSource().once('addfeature', function () {
-      const districtClipGeometry = districtLayer.getSource().getFeatures()
-        .find(feature => getFilterByProperty('distname', selectedDistrict)(feature))
-        .getGeometry();
-      clipOutsidePolygon(districtClipGeometry, 'outsideVectorLayer');
-    });
-
-  } else if (selectedState) {
-    const stateLayer = addLayerWithGeoJSON(
-      './india_state_geo.json',
-      'NAME_1',
-      selectedState,
-      new Style({
-        stroke: new Stroke({
-          color: '#000',
-          lineCap: 'butt',
-          width: 1
-        })
-      }),
-      'stateLayer'
-    );
-
-    stateLayer.getSource().once('addfeature', function () {
-      const stateClipGeometry = stateLayer.getSource().getFeatures()
-        .find(feature => getFilterByProperty('NAME_1', selectedState)(feature))
-        .getGeometry();
-      clipOutsidePolygon(stateClipGeometry, 'outsideVectorLayer');
-    });
-  }
-  setTimeout(() => {
-    generateLegend()
-    console.log("Delayed for 1 second.");
-  })
-});
-
-
 function village_filter(option) {
-  console.log("working");
+  const selectedDistrict = document.getElementById('village-dist').value;
+  const selectedCircle = document.getElementById('village-circle').value;
   const selectedVillage = document.getElementById('village-village').value;
-  console.log("Selected Village:", selectedVillage);
   const infopopup = document.getElementById("villageInfo");
 
-  
-  if(option==="clear"){
-    removeExistingLayer('districtLayer');
-    removeExistingLayer('stateLayer');
+  if (option === "clear") {
+    removeExistingLayer('villageLayer');
     removeExistingLayer('villageBoundary');
     infopopup.style.display = "none";
-
-    return
-
+    return;
   }
 
-  if(!selectedVillage){
-    window.alert("Select the District, Circle, Village");
+  if (!selectedDistrict) {
+    window.alert("Select the District");
     return;
   }
 
@@ -1275,44 +1131,46 @@ function village_filter(option) {
     return vectorLayer;
   }
 
-  function addLayerWithGeoJSON(url, propertyName, value, style, layerName) {
+  function addLayerWithGeoJSON(url, filterFunction, style, layerName) {
     const vectorSource = new VectorSource({
       url: url,
       format: new GeoJSON()
     });
-
+  
     vectorSource.once('change', function () {
       if (vectorSource.getState() === 'ready') {
         const features = vectorSource.getFeatures();
-        const filteredFeatures = features.filter(getFilterByProperty(propertyName, value));
+        const filteredFeatures = features.filter(filterFunction);
+        vectorSource.clear();
+        vectorSource.addFeatures(filteredFeatures);
+  
         if (filteredFeatures.length > 0) {
-          const feature = filteredFeatures[0];
-          const extent = getCoordinatesFromFeature(feature);
+          const extent = filteredFeatures.reduce((acc, feature) => {
+            return olExtend(acc, feature.getGeometry().getExtent()); // Use olExtend here instead of extend
+          }, createEmpty()); // Use createEmpty() to initialize the accumulator
           map.getView().fit(extent, { duration: 1000 });
         } else {
           console.log("No features found matching the criteria.");
         }
       }
     });
-
+  
     const vectorLayer = createVectorLayer(vectorSource, style, layerName);
     map.addLayer(vectorLayer);
     return vectorLayer;
   }
 
   function clipOutsidePolygon(clipGeometry, layerName, option) {
-    var mapExtent = worldview.calculateExtent(map.getSize());
-
-    const boundingBoxPolygon = fromExtent(mapExtent);
+    const mapExtent = map.getView().calculateExtent(map.getSize());
     const format = new GeoJSON();
-    const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
-    const clipGeoJSON = format.writeGeometryObject(clipGeometry);
-    const outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
-    const outsideFeature = format.readFeature(outsidePolygonGeoJSON);
-
-    const insideFeature = format.readFeature(clipGeoJSON);
 
     if (option === "mask") {
+      const boundingBoxPolygon = fromExtent(mapExtent);
+      const boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
+      const clipGeoJSON = format.writeGeometryObject(clipGeometry);
+      const outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
+      const outsideFeature = format.readFeature(outsidePolygonGeoJSON);
+
       const villageBoundary = new VectorLayer({
         source: new VectorSource({
           features: [outsideFeature]
@@ -1331,6 +1189,8 @@ function village_filter(option) {
       villageBoundary.set('name', layerName);
       map.addLayer(villageBoundary);
     } else if (option === "highlight") {
+      const insideFeature = format.readFeature(format.writeGeometryObject(clipGeometry));
+
       const insideVectorLayer = new VectorLayer({
         source: new VectorSource({
           features: [insideFeature]
@@ -1365,14 +1225,14 @@ function village_filter(option) {
     villageDetails.innerHTML = infoHTML;
   }
 
-  removeExistingLayer('VillageLayer');
+  removeExistingLayer('villageLayer');
   removeExistingLayer('villageBoundary');
 
-  if (selectedVillage) {
+  if (selectedDistrict && !selectedCircle && !selectedVillage) {
+    // Show all villages and info within the district
     const villageLayer = addLayerWithGeoJSON(
       './village_layer.geojson',
-      'Village',
-      selectedVillage,
+      getFilterByProperty('District', selectedDistrict),
       new Style({
         stroke: new Stroke({
           color: '#fcba03',
@@ -1380,7 +1240,63 @@ function village_filter(option) {
           width: 4
         })
       }),
-      'VillageLayer'
+      'villageLayer'
+    );
+
+    villageLayer.getSource().once('change', function () {
+      const features = villageLayer.getSource().getFeatures();
+      const villageNames = features.map(f => f.get('Village')).join(', ');
+      const villageCount = features.length;
+      console.log(`District: ${selectedDistrict}, Number of Villages: ${villageCount}, Villages: ${villageNames}`);
+
+      // Mask the area outside the district
+      const selectedFeature = features.find(getFilterByProperty('District', selectedDistrict));
+      if (selectedFeature) {
+        clipOutsidePolygon(selectedFeature.getGeometry(), 'villageBoundary', 'mask');
+      }
+    });
+  } else if (selectedDistrict && selectedCircle && !selectedVillage) {
+    // Show all villages and info within the district and circle
+    const villageLayer = addLayerWithGeoJSON(
+      './village_layer.geojson',
+      feature => getFilterByProperty('District', selectedDistrict)(feature) && getFilterByProperty('Circle', selectedCircle)(feature),
+      new Style({
+        stroke: new Stroke({
+          color: '#fcba03',
+          lineCap: 'butt',
+          width: 4
+        })
+      }),
+      'villageLayer'
+    );
+
+    villageLayer.getSource().once('change', function () {
+      const features = villageLayer.getSource().getFeatures();
+      const villageNames = features.map(f => f.get('Village')).join(', ');
+      const villageCount = features.length;
+      console.log(`District: ${selectedDistrict}, Circle: ${selectedCircle}, Number of Villages: ${villageCount}, Villages: ${villageNames}`);
+
+      // Mask the area outside the district and circle
+      const combinedGeometry = features.reduce((acc, feature) => {
+        return acc ? turf.union(acc, feature.getGeometry()) : feature.getGeometry();
+      }, null);
+      if (combinedGeometry) {
+        clipOutsidePolygon(combinedGeometry, 'villageBoundary', 'mask');
+      }
+    });
+  } else if (selectedDistrict && selectedCircle && selectedVillage) {
+    // Show the specific village with details
+    const villageLayer = addLayerWithGeoJSON(
+      './village_layer.geojson',
+      getFilterByProperty('Village', selectedVillage),
+      new Style({
+        stroke: new Stroke({
+          color: '#fcba03',
+          lineCap: 'butt',
+          width: 4
+        })
+      }),
+      'villageLayer'
     );
 
     villageLayer.getSource().once('change', function () {
@@ -1388,21 +1304,21 @@ function village_filter(option) {
       const selectedFeature = features.find(getFilterByProperty('Village', selectedVillage));
       if (selectedFeature) {
         const villageClipGeometry = selectedFeature.getGeometry();
-        clipOutsidePolygon(villageClipGeometry, 'villageBoundary', option);
+        clipOutsidePolygon(villageClipGeometry, 'villageBoundary', 'mask');
         displayVillageInfo(selectedFeature);
-        removeExistingLayer('VillageLayer');  // Remove the village layer after highlighting
+        removeExistingLayer('villageLayer');  // Remove the village layer after highlighting
         infopopup.style.display = "block";
       }
     });
   }
+
   setTimeout(() => {
-    generateLegend()
+    generateLegend();
     console.log("Delayed for 1 second.");
-  }, "2000");
+  }, 2000);
 }
 
 document.getElementById("village_selectButton_mask").addEventListener('click', function () {
-  console.log("working");
   village_filter("mask");
 });
 
@@ -1413,6 +1329,12 @@ document.getElementById("village_selectButton_highlight").addEventListener('clic
 document.getElementById("village_selectButton_clear").addEventListener('click', function () {
   village_filter("clear");
 });
+
+
+
+
+
+
 
 
 // 
@@ -1533,7 +1455,16 @@ async function ssa_select(option) {
         src: './modules/school.png', // URL to the pin icon
         scale: .1,
         zIndex: 10
-      })
+      }),
+      // image: new Circle({
+      //   fill: Fill,
+      //   stroke: Stroke,
+      //   radius: 5,
+      // }),
+      // stroke: new Stroke({
+      //   color: '#000',
+      //   width: 6,
+      // }),
     }),
     'ssaLayer'
   );
@@ -2531,17 +2462,9 @@ exportButton.addEventListener('click', function () {
   exportMap();
 }, false);
 
-
-
-
-
-
-
-
-
-
-
 // -------print ends
+
+
 import DragBox from 'ol/interaction/DragBox.js';
 
 
@@ -2693,13 +2616,13 @@ drawPointBuffer.on('drawend', async (event) => {
 
   if(lyr==='village'){
    workspace = "agis";
-   datastore = "india_shp_vill_data";
+   datastore = "village_data";
 
   }
   else if(lyr==='ssa2022'){
     
-     workspace = "WS_ONE";
-     datastore = "SSA_DATA_20222";
+     workspace = "agis";
+     datastore = "ssa_data_20222";
 
   }
 
