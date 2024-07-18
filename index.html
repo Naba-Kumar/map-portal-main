@@ -199,8 +199,10 @@
                   <option value="">Select Village</option>
                 </select>
               </form>
-              <button id="village_selectButton_mask">Masking</button>
+              <button id="village_selectButton_mask">Mask</button>
               <button id="village_selectButton_highlight">Highlight</button>
+              <button id="village_selectButton_clear">Clear</button>
+
 
             </div>
           </div>
@@ -232,32 +234,39 @@
           <div class="side_menu_container_optins">
             <li onclick="display_toggle_block('ssadata_search')">Search SSA</li>
             <div class="side_menu_cat2" id="ssadata_search">
-              <form id="filterFormSSA">
-                <label for="District">Select District:</label>
-                <select id="ssa-dist" name="district">
-                  <option value="">Select District</option>
-                </select>
-          
-                <label for="Block">Select Block:</label>
-                <select id="ssa-circle" name="block">
-                  <option value="">Select Block</option>
-                </select>
-          
-                <label for="Village">Select Village:</label>
-                <select id="ssa-village" name="village">
-                  <option value="">Select Village</option>
-                </select>
-          
-                <label for="School">Select School:</label>
-                <select id="ssa-school" name="school">
-                  <option value="">Select School</option>
-                </select>
-              </form>
-              <button id="ssa_selectButton">Select</button>
-              <button id="ssa_clearButton">Select</button>
+                <form id="filterFormSSA">
+                    <label for="District">Select District:</label>
+                    <select id="ssa-dist" name="district">
+                        <option value="">Select District</option>
+                    </select>
+        
+                    <label for="Block">Select Block:</label>
+                    <select id="ssa-circle" name="block">
+                        <option value="">Select Block</option>
+                    </select>
+        
+                    <label for="Village">Select Village:</label>
+                    <select id="ssa-village" name="village">
+                        <option value="">Select Village</option>
+                    </select>
+        
+                    <label for="School">Select School:</label>
+                    <select id="ssa-school" name="school">
+                        <option value="">Select School</option>
+                    </select>
+                </form>
+                <button id="ssa_selectButton">Select</button>
+                <button id="ssa_clearButton">Clear</button>
 
             </div>
-          </div>
+        </div>
+        
+        <!-- <div id="villageDetails"></div> -->
+        <!-- <div id="schoolHoverPopup" style="position: absolute; display: none; background: white; border: 1px solid black; padding: 5px;"></div> -->
+        
+        
+       
+        
 
 
           <div class="side_menu_container_optins">
@@ -267,7 +276,7 @@
                 <label for="layer">Select Layer:</label>
                 <select id="Buffer-layer" name="layer">
                   <option value="village">Village Data</option>
-                  <option value="ssa">SSA Data 2022</option>
+                  <option value="ssa2022">SSA Data 2022</option>
                 </select>
           
                 
@@ -404,7 +413,7 @@
 
 
           </li>
-          <li class="sidebar_items" onclick="display_toggle_side_Popup('layers_tool')">
+          <!-- <li class="sidebar_items" onclick="display_toggle_side_Popup('layers_tool')">
             <span class="material-symbols-outlined">stacks</span>
             <ul id="layers_tool" class="side_menu_popup">
 
@@ -453,7 +462,7 @@
                 <label for="Base">OSM</label> <br>
               </div>
             </ul>
-          </li>
+          </li> -->
 
           <!--  -->
 
@@ -615,8 +624,7 @@
   </div>
 
   </div>
-
-
+  <div id="villageDetails"></div>
 
   <div id="legend">
     <div id="colorBox"></div>

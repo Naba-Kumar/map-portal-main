@@ -1092,6 +1092,7 @@ document.getElementById('selectButton').addEventListener('click', function () {
   console.log("Selected State:", selectedState);
   console.log("Selected District:", selectedDistrict);
 
+
   function getCoordinatesFromFeature(feature) {
     return feature.getGeometry().getExtent();
   }
@@ -1218,6 +1219,10 @@ document.getElementById('selectButton').addEventListener('click', function () {
       clipOutsidePolygon(stateClipGeometry, 'outsideVectorLayer');
     });
   }
+  setTimeout(() => {
+    generateLegend()
+    console.log("Delayed for 1 second.");
+  })
 });
 
 
@@ -1225,6 +1230,23 @@ function village_filter(option) {
   console.log("working");
   const selectedVillage = document.getElementById('village-village').value;
   console.log("Selected Village:", selectedVillage);
+  const infopopup = document.getElementById("villageInfo");
+
+  
+  if(option==="clear"){
+    removeExistingLayer('districtLayer');
+    removeExistingLayer('stateLayer');
+    removeExistingLayer('villageBoundary');
+    infopopup.style.display = "none";
+
+    return
+
+  }
+
+  if(!selectedVillage){
+    window.alert("Select the District, Circle, Village");
+    return;
+  }
 
   function getCoordinatesFromFeature(feature) {
     return feature.getGeometry().getExtent();
@@ -1291,7 +1313,7 @@ function village_filter(option) {
     const insideFeature = format.readFeature(clipGeoJSON);
 
     if (option === "mask") {
-      const outsideVectorLayer = new VectorLayer({
+      const villageBoundary = new VectorLayer({
         source: new VectorSource({
           features: [outsideFeature]
         }),
@@ -1306,8 +1328,8 @@ function village_filter(option) {
           }),
         })
       });
-      outsideVectorLayer.set('name', layerName);
-      map.addLayer(outsideVectorLayer);
+      villageBoundary.set('name', layerName);
+      map.addLayer(villageBoundary);
     } else if (option === "highlight") {
       const insideVectorLayer = new VectorLayer({
         source: new VectorSource({
@@ -1344,7 +1366,7 @@ function village_filter(option) {
   }
 
   removeExistingLayer('VillageLayer');
-  removeExistingLayer('outsideVectorLayer');
+  removeExistingLayer('villageBoundary');
 
   if (selectedVillage) {
     const villageLayer = addLayerWithGeoJSON(
@@ -1366,14 +1388,17 @@ function village_filter(option) {
       const selectedFeature = features.find(getFilterByProperty('Village', selectedVillage));
       if (selectedFeature) {
         const villageClipGeometry = selectedFeature.getGeometry();
-        clipOutsidePolygon(villageClipGeometry, 'outsideVectorLayer', option);
+        clipOutsidePolygon(villageClipGeometry, 'villageBoundary', option);
         displayVillageInfo(selectedFeature);
         removeExistingLayer('VillageLayer');  // Remove the village layer after highlighting
-        const infopopup = document.getElementById("villageInfo");
         infopopup.style.display = "block";
       }
     });
   }
+  setTimeout(() => {
+    generateLegend()
+    console.log("Delayed for 1 second.");
+  }, "2000");
 }
 
 document.getElementById("village_selectButton_mask").addEventListener('click', function () {
@@ -1385,14 +1410,27 @@ document.getElementById("village_selectButton_highlight").addEventListener('clic
   village_filter("highlight");
 });
 
-
+document.getElementById("village_selectButton_clear").addEventListener('click', function () {
+  village_filter("clear");
+});
 
 
 // 
 // 
 // 
 
-document.getElementById('ssa_selectButton').addEventListener('click', function () {
+async function ssa_select(option) {
+  const infopopup = document.getElementById("villageInfo");
+
+  if(option==='clear'){
+    const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'ssaLayer');
+    if (existingLayer) {
+      map.removeLayer(existingLayer);
+    }
+    infopopup.style.display = "none";
+
+    return
+  }
   const selectedDistrict = document.getElementById('ssa-dist').value;
   const selectedBlock = document.getElementById('ssa-circle').value;
   const selectedVillage = document.getElementById('ssa-village').value;
@@ -1402,6 +1440,11 @@ document.getElementById('ssa_selectButton').addEventListener('click', function (
   console.log("Selected Block:", selectedBlock);
   console.log("Selected Village:", selectedVillage);
   console.log("Selected School:", selectedSchool);
+
+  if(!selectedDistrict){
+    window.alert("select atlest District First")
+    return
+  }
 
   function getFilterByProperties(properties) {
     return function (feature) {
@@ -1413,7 +1456,6 @@ document.getElementById('ssa_selectButton').addEventListener('click', function (
       return true;
     };
   }
-
 
   function removeExistingLayer(layerName) {
     const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
@@ -1488,8 +1530,7 @@ document.getElementById('ssa_selectButton').addEventListener('click', function (
     properties,
     new Style({
       image: new Icon({
-        // anchor: [0.5, 0.5],
-        src: './modules/school.png',// URL to the pin icon
+        src: './modules/school.png', // URL to the pin icon
         scale: .1,
         zIndex: 10
       })
@@ -1499,17 +1540,85 @@ document.getElementById('ssa_selectButton').addEventListener('click', function (
 
   ssaLayer.getSource().once('change', function () {
     const features = ssaLayer.getSource().getFeatures();
-    const selectedFeature = features.find(getFilterByProperty('School', selectedSchool));
-    if (selectedFeature) {
-      displaySchoolInfo(selectedFeature);
-      const infopopup = document.getElementById("villageInfo");
-      infopopup.style.display = "block";
-    }
-  });
-});
+    let count = 0;
 
-document.getElementById('ssa_selectButton').addEventListener('click', function () {
+    if (selectedSchool) {
+      const selectedFeature = features.find(getFilterByProperty('School', selectedSchool));
+      if (selectedFeature) {
+        displaySchoolInfo(selectedFeature);
+        infopopup.style.display = "block";
+      }
+    } else if (selectedVillage) {
+      let contInfoHTML = ``;
+      features.forEach(feature => {
+        if (getFilterByProperty('Village', selectedVillage)(feature)) {
+          console.log("count")
+          count++;
+          console.log(count)
+          const coordinates = feature.getGeometry().getCoordinates();
+          map.getView().animate({ center: coordinates, zoom: 15, duration: 1000 });
+          const properties = feature.getProperties();
+          console.log(properties.School)
+          contInfoHTML += `<p style="margin-bottom:5px">${properties.School}</p>`;
+        }
+      });
+      let infoHTML = `<h4>Number Of Schools In The Village: ${count}</h4> <br>`;
+      infoHTML += contInfoHTML
+      document.getElementById('villageDetails').innerHTML = infoHTML;
+      infopopup.style.display = "block";
+
+    } else if (selectedBlock) {
+      let contInfoHTML = ``;
+      features.forEach(feature => {
+        if (getFilterByProperty('Block', selectedBlock)(feature)) {
+          count++;
+          const coordinates = feature.getGeometry().getCoordinates();
+          map.getView().animate({ center: coordinates, zoom: 15, duration: 1000 });
+          const properties = feature.getProperties();
+          console.log(properties.School)
+          contInfoHTML += `<p style="margin-bottom:5px">${properties.School}</p>`;
+        }
+      });
+      let infoHTML = `<h4>Number Of Schools In The Block: ${count}</h4> <br>`;
+      infoHTML += contInfoHTML
+      document.getElementById('villageDetails').innerHTML = infoHTML;
+      infopopup.style.display = "block";
+
+    }
+    else if (selectedDistrict) {
+      let contInfoHTML = ``;
+      features.forEach(feature => {
+        if (getFilterByProperty('District', selectedDistrict)(feature)) {
+          count++;
+          const coordinates = feature.getGeometry().getCoordinates();
+          map.getView().animate({ center: coordinates, zoom: 15, duration: 1000 });
+          const properties = feature.getProperties();
+          contInfoHTML += `<p style="margin-bottom:5px">${properties.School}</p>`;
+        }
+      });
+      let infoHTML = `<h4>Number Of Schools In The District: ${count}</h4> <br>`;
+      infoHTML += contInfoHTML
+      document.getElementById('villageDetails').innerHTML = infoHTML;
+      infopopup.style.display = "block";
+
+    }
+
+    // Hover functionality
+
+  });
   
+  setTimeout(() => {
+    generateLegend()
+    console.log("Delayed for 1 second.");
+  }, "2000");
+};
+document.getElementById('ssa_selectButton').addEventListener('click', function () {
+  ssa_select('select')
+})
+
+document.getElementById('ssa_clearButton').addEventListener('click', function () {
+  ssa_select('clear')
+
 })
 
 
@@ -2067,18 +2176,25 @@ download.addEventListener('click', function () {
 
 const clear_all = document.getElementById("clear_all");
 clear_all.addEventListener('click', function () {
-  map.getLayers().forEach(function (layer) {
-    if (layer instanceof VectorLayer) {
-      map.removeLayer(layer);
-    }
-  });
+  const infopopup = document.getElementById("villageInfo");
+  infopopup.style.display = "none";
+ // Get all layers from the map
+ const layers = map.getLayers().getArray();
+
+ // Iterate through the layers and clear only vector layers
+ layers.forEach(layer => {
+   if (layer instanceof VectorLayer) {
+     layer.getSource().clear();
+   }
+ });
+  setTimeout(() => {
+    generateLegend()
+    console.log("Delayed for 1 second.");
+  }, "2000");
 })
 
 
-const clear_alll = document.getElementById('clear_alll');
-function cleaning() {
-  console.log("hii")
-}
+
 
 
 
@@ -2111,7 +2227,7 @@ function generateLegend() {
   const layers = map.getLayers().getArray();
   layers.forEach(layer => {
     const layerName = layer.get('name');
-    if (layerName) {
+    if (layerName && !layerName.includes('search')) {
       const source = layer.getSource();
       if (source instanceof VectorSource) {
         const features = source.getFeatures();
@@ -2470,13 +2586,13 @@ const drawPointBuffer = new Draw({
 
 // Event listener for draw end
 
-  const bufferLayer = new VectorLayer({
-    source: bufferSource,
-  });
-  map.addLayer(bufferLayer);
+const bufferLayer = new VectorLayer({
+  source: bufferSource,
+});
+map.addLayer(bufferLayer);
 
 document.getElementById('createBuffer').addEventListener('click', () => {
-  
+
   map.addInteraction(drawPointBuffer);
 });
 
@@ -2484,20 +2600,23 @@ document.getElementById('clearBuffer').addEventListener('click', () => {
   console.log("clearBuffer")
   console.log("clearBuffer");
 
-    // Remove all features from the buffer source
-    bufferSource.clear();
+  // Remove all features from the buffer source
+  bufferSource.clear();
 
-    // Remove any existing buffer layers
-    function removeExistingLayer(layerName) {
-        const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
-        if (existingLayer) {
-            map.removeLayer(existingLayer);
-        }
+  // Remove any existing buffer layers
+  function removeExistingLayer(layerName) {
+    const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
+    if (existingLayer) {
+      map.removeLayer(existingLayer);
     }
+  }
 
-    removeExistingLayer('bufferLayer');
+  removeExistingLayer('bufferLayer');
   // removeExistingLayer('stateLayer');
   // removeExistingLayer('outsideVectorLayer');
+
+  const infopopup = document.getElementById("villageInfo");
+  infopopup.style.display = "none";
   return
 });
 
@@ -2570,9 +2689,19 @@ drawPointBuffer.on('drawend', async (event) => {
   );
 
   let lyr = document.getElementById("Buffer-layer").value
+  let workspace, datastore;
 
-  let workspace = "WS_ONE";
-  let datastore = "SSA_DATA_20222";
+  if(lyr==='village'){
+   workspace = "agis";
+   datastore = "india_shp_vill_data";
+
+  }
+  else if(lyr==='ssa2022'){
+    
+     workspace = "WS_ONE";
+     datastore = "SSA_DATA_20222";
+
+  }
 
   // Fetch features from the WMS layer within the buffer's bounding box
   const bbox = turf.bbox(buffer).join(',');
@@ -2658,10 +2787,18 @@ drawPointBuffer.on('drawend', async (event) => {
 
 async function assamStateDistFilter(option) {
 
-  if(option==="clear"){
-    removeExistingLayer('districtLayer');
-    removeExistingLayer('stateLayer');
-    removeExistingLayer('outsideVectorLayer');
+  if (option === "clear") {
+    // function removeExistingLayer(layerName) {
+    //   const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
+    //   if (existingLayer) {
+    //     map.removeLayer(existingLayer);
+    //   }
+    // }
+
+    removeExistingLayer('searchDistrictLayer');
+    removeExistingLayer('searchStateLayer');
+    removeExistingLayer('filteredBoundary');
+
     return
   }
   const selectedState = document.getElementById('assam-state').value;
@@ -2735,7 +2872,7 @@ async function assamStateDistFilter(option) {
     const insideFeature = format.readFeature(clipGeoJSON);
 
     if (option === "mask") {
-      const outsideVectorLayer = new VectorLayer({
+      const filteredBoundary = new VectorLayer({
         source: new VectorSource({
           features: [outsideFeature]
         }),
@@ -2744,14 +2881,14 @@ async function assamStateDistFilter(option) {
             color: 'rgba(82, 101, 117, 1)'
           }),
           stroke: new Stroke({
-            color: '#fcba03',
+            color: '#ff3c00',
             lineCap: 'butt',
             width: 4
           }),
         })
       });
-      outsideVectorLayer.set('name', layerName);
-      map.addLayer(outsideVectorLayer);
+      filteredBoundary.set('name', layerName);
+      map.addLayer(filteredBoundary);
     } else if (option === "highlight") {
       const insideVectorLayer = new VectorLayer({
         source: new VectorSource({
@@ -2759,9 +2896,9 @@ async function assamStateDistFilter(option) {
         }),
         style: new Style({
           stroke: new Stroke({
-            color: '#fcba03',
+            color: '#f7810a',
             lineCap: 'butt',
-            width: 4
+            width: 3
           }),
           fill: new Fill({
             color: 'rgba(9, 0, 255, .3)'
@@ -2786,58 +2923,63 @@ async function assamStateDistFilter(option) {
     // map.addLayer(outsideVectorLayer);
   }
 
-  removeExistingLayer('districtLayer');
-  removeExistingLayer('stateLayer');
-  removeExistingLayer('outsideVectorLayer');
+  removeExistingLayer('searchDistrictLayer');
+  removeExistingLayer('searchStateLayer');
+  removeExistingLayer('filteredBoundary');
 
   if (selectedDistrict) {
-    const districtLayer = addLayerWithGeoJSON(
+    const searchDistrictLayer = addLayerWithGeoJSON(
       './assamStateDist.geojson',
       'dtname',
       selectedDistrict,
       new Style({
         stroke: new Stroke({
-          color: '#a0a',
+          color: '#1ad914',
           lineCap: 'butt',
-          width: 1
+          width: 2
         })
       }),
-      'districtLayer'
+      'searchDistrictLayer'
     );
 
-    districtLayer.getSource().once('addfeature', function () {
-      const districtClipGeometry = districtLayer.getSource().getFeatures()
+    searchDistrictLayer.getSource().once('addfeature', function () {
+      const districtClipGeometry = searchDistrictLayer.getSource().getFeatures()
         .find(feature => getFilterByProperty('dtname', selectedDistrict)(feature))
         .getGeometry();
-      clipOutsidePolygon(districtClipGeometry, 'outsideVectorLayer');
+      clipOutsidePolygon(districtClipGeometry, 'filteredBoundary');
     });
 
   } else if (selectedState) {
-    const stateLayer = addLayerWithGeoJSON(
+    const searchStateLayer = addLayerWithGeoJSON(
       './india_state_geo.json',
       'NAME_1',
       selectedState,
       new Style({
         stroke: new Stroke({
-          color: '#000',
+          color: '#1ad914',
           lineCap: 'butt',
           width: 1
         })
       }),
-      'stateLayer'
+      'searchStateLayer'
     );
 
-    stateLayer.getSource().once('addfeature', function () {
-      const stateClipGeometry = stateLayer.getSource().getFeatures()
+    searchStateLayer.getSource().once('addfeature', function () {
+      const stateClipGeometry = searchStateLayer.getSource().getFeatures()
         .find(feature => getFilterByProperty('NAME_1', selectedState)(feature))
         .getGeometry();
-      clipOutsidePolygon(stateClipGeometry, 'outsideVectorLayer');
+      clipOutsidePolygon(stateClipGeometry, 'filteredBoundary');
     });
   }
+  setTimeout(() => {
+    generateLegend()
+    console.log("Delayed for 1 second.");
+  }, "2000");
 };
 
 document.getElementById('assam-state-dist-mask').addEventListener('click', function () {
-  assamStateDistFilter("mask")})
+  assamStateDistFilter("mask")
+})
 
 document.getElementById('assam-state-dist-highlight').addEventListener('click', function () {
   assamStateDistFilter("highlight")
@@ -2845,3 +2987,21 @@ document.getElementById('assam-state-dist-highlight').addEventListener('click', 
 document.getElementById('assam-state-dist-clear').addEventListener('click', function () {
   assamStateDistFilter("clear")
 })
+
+
+// if(option==='clear'){
+//   const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'ssaLayer');
+//   if (existingLayer) {
+//     map.removeLayer(existingLayer);
+//   }
+//   infopopup.style.display = "none";
+
+//   return
+// }
+
+// function removeExistingLayer(layerName) {
+//   const existingLayer = map.getLayers().getArray().find(layer => layer.get('name') === layerName);
+//   if (existingLayer) {
+//     map.removeLayer(existingLayer);
+//   }
+// }
