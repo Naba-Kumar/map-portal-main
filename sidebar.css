@@ -826,3 +826,44 @@ canvas {
     z-index: 110;
     background-color: #330101;
 }
+
+
+
+
+#info{
+    position: absolute;
+    top: 60px;
+    left: 369px;
+    display: none;
+    max-height: 60px;
+    min-width: 300px;
+    background-color: #a4e7d1;
+    padding: 10px;
+    /* overflow: scroll; */
+    border-radius: 6px;
+    padding: 13px;
+    /* border: 1px solid  #00625A; */
+    /* border-radius: 8px; */
+    
+}
+
+#info select{
+    width: 90%;
+    border: 1px solid  #00625A;
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#info.show{
+    display: block;
+}
+#info-toggle{
+    position: absolute;
+    top: 20px;
+    right: 3px;
+}
+
+#info-content{
+    margin-right: 30px;
+}

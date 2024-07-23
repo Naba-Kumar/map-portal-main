@@ -25,7 +25,11 @@ menuToggle.addEventListener('click', () => {
 });
 
 
-
+// popup
+document.getElementById('info-toggle').addEventListener('click', function(){
+  document.getElementById('info').style.display='none';
+})
+// pop up
 
 function fullscreen_click(){
     let fullscrIn= document.getElementById("fullscreen_in");

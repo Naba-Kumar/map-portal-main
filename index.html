@@ -178,7 +178,7 @@
 
             </ul>
           </div>
-      
+
 
           <div class="side_menu_container_optins">
             <li onclick="display_toggle_block('village_search')">Search Village</li>
@@ -186,7 +186,7 @@
               <form id="filterFormVillage">
                 <label for="state">Select District:</label>
                 <select id="village-dist" name="district">
-                    <option value="">Select District</option>
+                  <option value="">Select District</option>
                 </select>
 
                 <label for="state">Select Circle:</label>
@@ -234,39 +234,39 @@
           <div class="side_menu_container_optins">
             <li onclick="display_toggle_block('ssadata_search')">Search SSA</li>
             <div class="side_menu_cat2" id="ssadata_search">
-                <form id="filterFormSSA">
-                    <label for="District">Select District:</label>
-                    <select id="ssa-dist" name="district">
-                        <option value="">Select District</option>
-                    </select>
-        
-                    <label for="Block">Select Block:</label>
-                    <select id="ssa-circle" name="block">
-                        <option value="">Select Block</option>
-                    </select>
-        
-                    <label for="Village">Select Village:</label>
-                    <select id="ssa-village" name="village">
-                        <option value="">Select Village</option>
-                    </select>
-        
-                    <label for="School">Select School:</label>
-                    <select id="ssa-school" name="school">
-                        <option value="">Select School</option>
-                    </select>
-                </form>
-                <button id="ssa_selectButton">Select</button>
-                <button id="ssa_clearButton">Clear</button>
+              <form id="filterFormSSA">
+                <label for="District">Select District:</label>
+                <select id="ssa-dist" name="district">
+                  <option value="">Select District</option>
+                </select>
+
+                <label for="Block">Select Block:</label>
+                <select id="ssa-circle" name="block">
+                  <option value="">Select Block</option>
+                </select>
+
+                <label for="Village">Select Village:</label>
+                <select id="ssa-village" name="village">
+                  <option value="">Select Village</option>
+                </select>
+
+                <label for="School">Select School:</label>
+                <select id="ssa-school" name="school">
+                  <option value="">Select School</option>
+                </select>
+              </form>
+              <button id="ssa_selectButton">Select</button>
+              <button id="ssa_clearButton">Clear</button>
 
             </div>
-        </div>
-        
-        <!-- <div id="villageDetails"></div> -->
-        <!-- <div id="schoolHoverPopup" style="position: absolute; display: none; background: white; border: 1px solid black; padding: 5px;"></div> -->
-        
-        
-       
-        
+          </div>
+
+          <!-- <div id="villageDetails"></div> -->
+          <!-- <div id="schoolHoverPopup" style="position: absolute; display: none; background: white; border: 1px solid black; padding: 5px;"></div> -->
+
+
+
+
 
 
           <div class="side_menu_container_optins">
@@ -278,8 +278,8 @@
                   <option value="village">Village Data</option>
                   <option value="ssa2022">SSA Data 2022</option>
                 </select>
-          
-                
+
+
                 <label for="School">Select School:</label>
                 <input type="number" id="buffer-radius" placeholder="Enter Radious in meter">
 
@@ -289,8 +289,8 @@
 
             </div>
           </div>
-          
-          
+
+
           <div class="side_menu_container_optins">
             <li onclick="display_toggle_block('upload')">Upload</li>
             <div class="side_menu_cat2" id="upload">
@@ -543,13 +543,13 @@
             <span class="material-symbols-outlined">filter_alt</span>
             
           </li> -->
-          <li class="sidebar_items"  onclick="display_toggle_side_Popup('villageInfo')">
+          <li class="sidebar_items" onclick="display_toggle_side_Popup('villageInfo')">
             <span class="material-symbols-outlined">info</span>
             <!-- <ul id="Print_tool" class=""> -->
-              <div id="villageInfo" >
-                
-                <div id="villageDetails"></div>
-              </div>
+            <div id="villageInfo">
+
+              <div id="villageDetails"></div>
+            </div>
             <!-- </ul> -->
 
 
@@ -560,10 +560,10 @@
 
           </li>
 
-            <div id="scale-line-control-cont">
-              <div id='scale-line-control' class="scaleLine">
-              </div>
+          <div id="scale-line-control-cont">
+            <div id='scale-line-control' class="scaleLine">
             </div>
+          </div>
 
 
         </ul>
@@ -620,21 +620,25 @@
   <div id="map-view">
     <div id="map"></div>
     <!-- <div id="legend" class="legend"> -->
-    </div>
   </div>
 
+
+  <div id="info">
+    <div id="info-content"></div>
+    <div id="info-toggle"><span class="material-symbols-outlined">close</span> </div>
   </div>
-  <div id="villageDetails"></div>
+
+
+  <div id="villageDetails">fff</div>
 
   <div id="legend">
     <div id="colorBox"></div>
     <span id="span">
   </div>
-  </div>
 
 
-  
-  
+
+
 
 
   <div id="aboutSection">
