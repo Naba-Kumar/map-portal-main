@@ -52,7 +52,7 @@
         <ul class="side_menu_cat1">
           <div class="side_menu_container_optins">
 
-            <li onclick="display_toggle_block('admin_state')">Admin Satate</li>
+            <li onclick="display_toggle_block('admin_state')">Admin State</li>
             <ul class="side_menu_optin_block, side_menu_cat2" id="admin_state">
 
               <li onclick="display_toggle_block_adminState('Boudaries')">Boudaries</li>
@@ -72,6 +72,10 @@
                 <li>
                   <input type="checkbox" id="VillageBoundary" class="layer-checkbox">
                   <label for="VillageBoundary">Village Boundary</label>
+                </li>
+                <li>
+                  <input type="checkbox" id="ssa" class="layer-checkbox">
+                  <label for="ssa"> School</label>
                 </li>
                 <li>
                   <input type="checkbox" id="Grampanchayat" class="layer-checkbox">
@@ -275,8 +279,8 @@
               <form id="bufferForm">
                 <label for="layer">Select Layer:</label>
                 <select id="Buffer-layer" name="layer">
-                  <option value="village">Village Data</option>
                   <option value="ssa2022">SSA Data 2022</option>
+                  <option value="village">Village Data</option>
                 </select>
 
 
@@ -295,7 +299,7 @@
             <li onclick="display_toggle_block('upload')">Upload</li>
             <div class="side_menu_cat2" id="upload">
               <label for="fileInput">Choose <span style="color: red; font-size: .9em;"> .GeoJSON or .csv</span> </label>
-              <input type="file" id="fileInput" accept=".Geojson, .json, .csv, .zip">
+              <input type="file" id="fileInput" accept=".Geojson, .json, .csv, .kml">
               <button id="uploadButton">Upload</button>
             </div>
           </div>
@@ -589,8 +593,13 @@
         </ul>
       </ul>
     </div>
-    <button id="label" onclick="handletoggleLabelLayer('labelLayer')">Add Label</button>
+    
+    <!-- <button id="label0" onclick="handletoggleLabelLayer('labelLayer')"> Label</button> -->
+    <button id="labelState"> State</button>
+    <button id="labelDist"> District</button>
+    <button id="labelVill"> Village</button>
   </div>
+
 
 
 

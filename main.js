@@ -14,9 +14,14 @@ import Draw from 'ol/interaction/Draw.js';
 import Overlay from 'ol/Overlay.js';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style.js';
 import Circle from 'ol/geom/Circle.js';
-import { LineString, Polygon } from 'ol/geom.js';
+import { LineString, Polygon, MultiPolygon  } from 'ol/geom.js';
 import { Vector as VectorSource } from 'ol/source.js';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer.js';
+import TileWMS from 'ol/source/TileWMS.js';
+import Cluster from 'ol/source/Cluster.js';
+import MVT from 'ol/format/MVT.js';
+import KML from 'ol/format/KML';
+
 import { getArea, getLength } from 'ol/sphere.js';
 import { unByKey } from 'ol/Observable.js';
 import MousePosition from 'ol/control/MousePosition.js';
@@ -1607,8 +1612,8 @@ async function ssa_select(option) {
   }
 
   function displaySchoolInfo(feature) {
-  const properties = feature.getProperties();
-  let contInfoHTML = `
+    const properties = feature.getProperties();
+    let contInfoHTML = `
     <table style="border-collapse: collapse; width: 100%;">
       <thead>
         <tr>
@@ -1617,26 +1622,26 @@ async function ssa_select(option) {
         </tr>
       </thead>
       <tbody>`;
-  
-  for (const key in properties) {
-    if (key !== 'geometry') {
-      contInfoHTML += `
+
+    for (const key in properties) {
+      if (key !== 'geometry') {
+        contInfoHTML += `
         <tr>
           <td style="border: 1px solid black; padding: 8px;">${key}</td>
           <td style="border: 1px solid black; padding: 8px;">${properties[key]}</td>
         </tr>`;
+      }
     }
+
+    contInfoHTML += `</tbody></table>`;
+
+    let infoHTML = `<h3>SSA Data Information</h3><br>`;
+    // Assuming `count` is a variable that holds the number of schools in the village
+    infoHTML += contInfoHTML;
+
+    document.getElementById('villageDetails').innerHTML = infoHTML;
+    infopopup.style.display = "block";
   }
-  
-  contInfoHTML += `</tbody></table>`;
-  
-  let infoHTML = `<h3>SSA Data Information</h3><br>`;
-  // Assuming `count` is a variable that holds the number of schools in the village
-  infoHTML += contInfoHTML;
-  
-  document.getElementById('villageDetails').innerHTML = infoHTML;
-  infopopup.style.display = "block";
-}
 
 
   const ssaLayer = addLayerWithGeoJSON(
@@ -1825,9 +1830,7 @@ async function ssa_select(option) {
           <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('District')}</th>
           <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('Circle')}</th>
           <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('Village')}</th>
-                    <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('School')}</th>
-
-
+          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('School')}</th>
 
         </tr>
       </thead>
@@ -1888,136 +1891,770 @@ document.getElementById('ssa_clearButton').addEventListener('click', function ()
 // state boundary
 
 
+const villageCheckbox = document.getElementById('VillageBoundary');
+const villageBoundaryLayer = new TileLayer({
+  source: new TileWMS({
+    url: 'http://localhost:8080/geoserver/wms',
+    params: {
+      'LAYERS': 'agis:india_shp_vill_data',
+      'TILED': true,
+      'INFO_FORMAT': 'application/json', // Ensure the response is in JSON format
+      // 'SLD_BODY': sldEncoded // Use custom SLD style
+    },
+    crossOrigin: "Anonymous",
+    serverType: 'geoserver',
+  }),
+  visible: false,
+});
 
-const satatecheckbox = document.getElementById('stateboundary');
 
-satatecheckbox.addEventListener('change', function () {
-  // Get the existing state layer if it exists
-  const existingStateLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'stateLayer');
+const dstrictCheckbox = document.getElementById('DistrictBoundary');
+const dstrictBoundaryLayer = new TileLayer({
+  source: new TileWMS({
+    url: 'http://localhost:8080/geoserver/wms',
+    params: {
+      'LAYERS': 'agis:assam_state_dist',
+      'TILED': true,
+      'INFO_FORMAT': 'application/json', // Ensure the response is in JSON format
+      // 'SLD_BODY': sldEncoded // Use custom SLD style
+    },
+    crossOrigin: "Anonymous",
+    serverType: 'geoserver',
 
-  if (satatecheckbox.checked) {
-    // Create a vector source for the state layer
-    const stateVectorSource = new VectorSource({
-      url: 'http://localhost:8080/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typeName=WS_ONE:2022_ssa_data&outputFormat=application/json', // Replace with your GeoServer WFS URL
-      format: new GeoJSON()
-    });
+  }),
+  visible: false,
+});
 
-    const selectedState = 'assam';
+const stateCheckbox = document.getElementById('stateboundary');
+const stateBoundaryLayer = new TileLayer({
+  source: new TileWMS({
+    url: 'http://localhost:8080/geoserver/wms',
+    params: {
+      'LAYERS': 'agis:assam_boundary',
+      'TILED': true,
+      'INFO_FORMAT': 'application/json', // Ensure the response is in JSON format
+      // 'SLD_BODY': sldEncoded // Use custom SLD style
+    },
+    crossOrigin: "Anonymous",
+    serverType: 'geoserver',
+  }),
+  visible: false,
+});
 
-    // Function to create a filter based on state name (adjust property name if needed)
-    function getStateFilter(selected) {
-      return function (feature) {
-        return feature.get('Name').toLowerCase() === selected.toLowerCase(); // Modify property name based on your data
-      };
-    }
+const ssaCheckbox = document.getElementById('ssa');
+const ssaBoundaryLayer = new TileLayer({
+  source: new TileWMS({
+    url: 'http://localhost:8080/geoserver/wms',
+    params: {
+      'LAYERS': 'agis:ssa_data_20222',
+      'TILED': true,
+      'INFO_FORMAT': 'application/json', // Ensure the response is in JSON format
+      // 'SLD_BODY': sldEncoded // Use custom SLD style
+    },
+    crossOrigin: "Anonymous",
+    serverType: 'geoserver',
+  }),
+  visible: false,
+});
 
-    // Apply the filter to the source based on selected state
-    stateVectorSource.once('change', function () {
-      stateVectorSource.getFeatures().forEach(function (feature) {
-        if (!getStateFilter(selectedState)(feature)) {
-          stateVectorSource.removeFeature(feature);
+let highlight;
+const featureOverlay = new VectorLayer({
+  source: new VectorSource(),
+  map: map,
+  style: new Style({
+    stroke: new Stroke({
+      color: 'rgba(0, 255, 0, 0.7)',
+      width: 2,
+    }),
+    fill: new Fill({
+      color: 'rgba(255, 255, 255, 0.3)'
+    }),
+  }),
+});
+
+const displayFeatureInfo = function (pixel, layer) {
+  const viewResolution = map.getView().getResolution();
+  const url = layer.getSource().getFeatureInfoUrl(
+    map.getCoordinateFromPixel(pixel),
+    viewResolution,
+    'EPSG:3857',
+    { 'INFO_FORMAT': 'application/json' }
+  );
+
+  if (url) {
+    console.log(layer)
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const info = document.getElementById('info-content');
+        if (data.features && data.features.length > 0) {
+          const feature = data.features[0];
+  
+          let layer_nm = "";
+          console.log()
+        
+
+
+          let infoHTML = `<h4 style="text-align: center; margin:10px"> Information</h4>`;
+          infoHTML += '<hr>';
+
+          infoHTML += `<table style="border-collapse: collapse; width: 100%;">
+      <thead>
+        <tr>
+          <th style="border: 1px solid black; padding: 8px; text-align: left;">Property</th>
+          <th style="border: 1px solid black; padding: 8px; text-align: left;">Value</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+          // Iterate over each feature to populate the table rows
+          console.log(data.features[0] )
+          data.features .forEach(function (feature) {
+            const properties = feature.properties;            ;
+            for (const key in properties) {
+              if (key !== 'geometry') {
+                infoHTML += `<tr>
+                          <td style="border: 1px solid black; padding: 8px;">${key}</td>
+                          <td style="border: 1px solid black; padding: 8px;">${properties[key]}</td>
+                          </tr>`;
+              }
+            }
+
+          });
+          // Close the table
+          infoHTML += `</tbody></table>`;
+
+          document.getElementById("villageDetails").innerHTML = infoHTML;
+          console.log("hey")
+          const infopopup = document.getElementById("villageInfo");
+          infopopup.style.display = "block"
+
+
+
+
+
+
+
+
+
+          if (highlight) {
+            featureOverlay.getSource().removeFeature(highlight);
+          }
+
+          let geometry;
+          switch (feature.geometry.type) {
+            case 'Polygon':
+            case 'MultiPolygon':
+              geometry = new GeoJSON().readGeometry(feature.geometry);
+              break;
+            case 'Point':
+              geometry = new Point(new GeoJSON().readGeometry(feature.geometry).getCoordinates());
+              break;
+            default:
+              geometry = new GeoJSON().readGeometry(feature.geometry);
+          }
+
+          highlight = new Feature(geometry);
+          featureOverlay.getSource().addFeature(highlight);
+        } else {
+          document.getElementById('info').style.display = "none";
+          if (highlight) {
+            featureOverlay.getSource().removeFeature(highlight);
+            highlight = null;
+          }
         }
-      });
-    });
-
-    // Create a state vector layer with the filtered source
-    const stateLayer = new VectorLayer({
-      source: stateVectorSource,
-      style: new Style({
-        stroke: new Stroke({
-          color: '#000',
-          lineCap: 'butt',
-          width: 1
-        }),
       })
-    });
+      .catch(error => console.error('Error fetching feature info:', error));
+  }
+};
 
-    stateLayer.set('name', 'stateLayer');
-
-    // Add the layer to the map
-    map.addLayer(stateLayer);
-  } else {
-    // If the checkbox is unchecked, remove the existing state layer if it exists
-    if (existingStateLayer) {
-      map.removeLayer(existingStateLayer);
+const onPointerMove = function (evt) {
+  if (evt.dragging) {
+    return;
+  }
+  const pixel = map.getEventPixel(evt.originalEvent);
+  const layers = [villageBoundaryLayer, dstrictBoundaryLayer,ssaBoundaryLayer];
+  for (let layer of layers) {
+    if (layer.getVisible() && layer.getSource().getFeatureInfoUrl) {
+      displayFeatureInfo(pixel, layer);
+      break; // Stop after finding the first visible layer with a FeatureInfo URL
     }
   }
+};
 
+const onClick = function (evt) {
+  const pixel = evt.pixel;
+  const layers = [villageBoundaryLayer, dstrictBoundaryLayer, ssaBoundaryLayer];
+  for (let layer of layers) {
+    if (layer.getVisible() && layer.getSource().getFeatureInfoUrl) {
+      displayFeatureInfo(pixel, layer);
+      break; // Stop after finding the first visible layer with a FeatureInfo URL
+    }
+  }
+};
+
+const handleLayerChange = function (layer, checkbox) {
+  layer.setVisible(checkbox.checked);
+  if (checkbox.checked) {
+    map.addLayer(layer);
+    map.on('pointermove', onPointerMove);
+    map.on('click', onClick);
+
+  } else {
+    map.removeLayer(layer);
+    map.un('pointermove', onPointerMove);
+    map.un('click', onClick);
+  }
   setTimeout(() => {
     generateLegend();
     console.log("Delayed for 1 second.");
   }, 2000);
+};
+ssaCheckbox.addEventListener('change', function () {
+  handleLayerChange(ssaBoundaryLayer, this);
+});
+villageCheckbox.addEventListener('change', function () {
+  handleLayerChange(villageBoundaryLayer, this);
 });
 
+dstrictCheckbox.addEventListener('change', function () {
+  handleLayerChange(dstrictBoundaryLayer, this);
+});
+
+stateCheckbox.addEventListener('change', function () {
+  handleLayerChange(stateBoundaryLayer, this);
+});
+
+
+villageBoundaryLayer.getSource().on('tileloaderror', function (event) {
+  console.error('Tile load error:', event);
+});
+dstrictBoundaryLayer.getSource().on('tileloaderror', function (event) {
+  console.error('Tile load error:', event);
+});
+stateBoundaryLayer.getSource().on('tileloaderror', function (event) {
+  console.error('Tile load error:', event);
+});
+ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
+  console.error('Tile load error:', event);
+});
+// 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// dist layer
+
+// ---ends dist layer
 
 
 // District boundary
 
-const districtcheckbox = document.getElementById('DistrictBoundary');
+// const districtcheckbox = document.getElementById('DistrictBoundary');
 
-districtcheckbox.addEventListener('change', function () {
-  // Get the existing state layer if it exists
-  const existingDistrictLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'districtLayer');
+// districtcheckbox.addEventListener('change', function () {
+//   // Get the existing state layer if it exists
+//   const existingDistrictLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'districtLayer');
 
-  if (districtcheckbox.checked) {
-    // Create a vector source for the state layer
-    const districtVectorSource = new VectorSource({
-      url: './assam_dist_json.geojson', // Replace with your state data URL
-      format: new GeoJSON()
-    });
+//   if (districtcheckbox.checked) {
+//     // Create a vector source for the state layer
+//     const districtVectorSource = new VectorSource({
+//       url: './assam_dist_json.geojson', // Replace with your state data URL
+//       format: new GeoJSON()
+//     });
 
-    const selectedState = 'assam';
+//     const selectedState = 'assam';
 
-    // Function to create a filter based on state name (adjust property name if needed)
-    function getStateFilter(selected) {
-      return function (feature) {
-        return feature.get('statename').toLowerCase() === selected.toLowerCase(); // Modify property name based on your data
-      };
-    }
+//     // Function to create a filter based on state name (adjust property name if needed)
+//     function getStateFilter(selected) {
+//       return function (feature) {
+//         return feature.get('statename').toLowerCase() === selected.toLowerCase(); // Modify property name based on your data
+//       };
+//     }
 
-    // Apply the filter to the source based on selected state
-    districtVectorSource.once('change', function () {
-      districtVectorSource.getFeatures().forEach(function (feature) {
-        if (!getStateFilter(selectedState)(feature)) {
-          districtVectorSource.removeFeature(feature);
-        }
-      });
-    });
+//     // Apply the filter to the source based on selected state
+//     districtVectorSource.once('change', function () {
+//       districtVectorSource.getFeatures().forEach(function (feature) {
+//         if (!getStateFilter(selectedState)(feature)) {
+//           districtVectorSource.removeFeature(feature);
+//         }
+//       });
+//     });
 
-    // Create a state vector layer with the filtered source
-    const districtLayer = new VectorLayer({
-      source: districtVectorSource,
-      style: new Style({
-        stroke: new Stroke({
-          color: '#a0a',
-          lineCap: 'butt',
-          width: 1
-        }),
-      })
-    });
+//     // Create a state vector layer with the filtered source
+//     const districtLayer = new VectorLayer({
+//       source: districtVectorSource,
+//       style: new Style({
+//         stroke: new Stroke({
+//           color: '#a0a',
+//           lineCap: 'butt',
+//           width: 1
+//         }),
+//       })
+//     });
 
-    districtLayer.set('name', 'districtLayer');
+//     districtLayer.set('name', 'districtLayer');
 
-    // Add the layer to the map
-    map.addLayer(districtLayer);
-  } else {
-    // If the checkbox is unchecked, remove the existing state layer if it exists
-    if (existingDistrictLayer) {
-      map.removeLayer(existingDistrictLayer);
-    }
-  }
-  setTimeout(() => {
-    generateLegend()
-    console.log("Delayed for 1 second.");
-  }, "2000");
+//     // Add the layer to the map
+//     map.addLayer(districtLayer);
+//   } else {
+//     // If the checkbox is unchecked, remove the existing state layer if it exists
+//     if (existingDistrictLayer) {
+//       map.removeLayer(existingDistrictLayer);
+//     }
+//   }
+//   setTimeout(() => {
+//     generateLegend()
+//     console.log("Delayed for 1 second.");
+//   }, "2000");
+// });
+
+// const statecheckbox = document.getElementById('stateboundary');
+
+// statecheckbox.addEventListener('change', function () {
+//   // Get the existing state layer if it exists
+//   const existingStateLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'stateLayer');
+
+//   if (statecheckbox.checked) {
+//     // Create a vector source for the state layer
+//     const stateVectorSource = new VectorSource({
+//       url: './assam_boundary.geojson', // Replace with your state data URL
+//       format: new GeoJSON()
+//     });
+
+//     const selectedState = 'assam';
+
+//     // Function to create a filter based on state name (adjust property name if needed)
+//     function getStateFilter(selected) {
+//       return function (feature) {
+//         return feature.get('Name').toLowerCase() === selected.toLowerCase(); // Modify property name based on your data
+//       };
+//     }
+
+//     // Apply the filter to the source based on selected state
+//     stateVectorSource.once('change', function () {
+//       stateVectorSource.getFeatures().forEach(function (feature) {
+//         if (!getStateFilter(selectedState)(feature)) {
+//           stateVectorSource.removeFeature(feature);
+//         }
+//       });
+//     });
+
+//     // Create a state vector layer with the filtered source
+//     const stateLayer = new VectorLayer({
+//       source: stateVectorSource,
+//       style: new Style({
+//         stroke: new Stroke({
+//           color: '#000',
+//           lineCap: 'butt',
+//           width: 1
+//         }),
+//       })
+//     });
+
+//     stateLayer.set('name', 'stateLayer');
+
+//     // Add the layer to the map
+//     map.addLayer(stateLayer);
+//   } else {
+//     // If the checkbox is unchecked, remove the existing state layer if it exists
+//     if (existingStateLayer) {
+//       map.removeLayer(existingStateLayer);
+//     }
+//   }
+
+//   setTimeout(() => {
+//     generateLegend()
+//     console.log("Delayed for 1 second.");
+//   }, "2000");
+// });
+
+
+
+// const districtcheckbox = document.getElementById('DistrictBoundary');
+
+// districtcheckbox.addEventListener('change', function () {
+//   // Get the existing state layer if it exists
+//   const existingDistrictLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'districtLayer');
+
+//   if (districtcheckbox.checked) {
+//     // Create a vector source for the state layer
+//     const districtVectorSource = new VectorSource({
+//       url: './assam_state_dist.geojson', // Replace with your state data URL
+//       format: new GeoJSON()
+//     });
+
+//     // const selectedState = 'assam';
+
+//     // Function to create a filter based on state name (adjust property name if needed)
+//     // function getStateFilter(selected) {
+//     //   return function (feature) {
+//     //     return feature.get('Name').toLowerCase() === selected.toLowerCase(); // Modify property name based on your data
+//     //   };
+//     // }
+
+//     // Apply the filter to the source based on selected state
+//     // stateVectorSource.once('change', function () {
+//     //   stateVectorSource.getFeatures().forEach(function (feature) {
+//     //     if (!getStateFilter(selectedState)(feature)) {
+//     //       stateVectorSource.removeFeature(feature);
+//     //     }
+//     //   });
+//     // });
+
+//     // Create a district vector layer with the filtered source
+//     const districtLayer = new VectorLayer({
+//       source: districtVectorSource,
+//       style: new Style({
+//         stroke: new Stroke({
+//           color: '#a0a',
+//           lineCap: 'butt',
+//           width: 1
+//         }),
+//         fill: new Fill({
+//           color: [255, 255, 255, 0.1],
+//         }),
+//       })
+//     });
+
+//     districtLayer.set('name', 'districtLayer');
+
+//     // Add the layer to the map
+//     map.addLayer(districtLayer);
+//   } else {
+//     // If the checkbox is unchecked, remove the existing district layer if it exists
+//     if (existingDistrictLayer) {
+//       map.removeLayer(existingDistrictLayer);
+//     }
+//   }
+
+//   let highlight;
+//   const featureOverlay = new VectorLayer({
+//     source: new VectorSource(),
+//     map: map,
+//     style: new Style({
+//       stroke: new Stroke({
+//         color: 'rgba(0, 255, 0, 0.7)',
+//         width: 2,
+//       }),
+
+//     }),
+//   });
+
+//   const displayFeatureInfo = function (pixel) {
+//     // const info = document.getElementById('info-content');
+//     map.forEachFeatureAtPixel(pixel, function (feature, layer) {
+//       console.log(layer.get('name'))
+//       if (layer && layer.get('name') === 'districtLayer') {
+//         document.getElementById('info').style.display = "block";
+//         const info = document.getElementById('info-content');
+//         if (feature) {
+//           info.innerHTML = `<table style="border-collapse: collapse; width: 100%;">
+//       <thead>
+//         <tr>
+//           <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('District')}</th>
+//           <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('Area')}</th>
+
+//         </tr>
+//       </thead>
+//       </table>`;
+//         } else {
+//           info.innerHTML = '&nbsp;';
+//         }
+
+//         if (feature !== highlight) {
+//           if (highlight) {
+//             featureOverlay.getSource().removeFeature(highlight);
+//           }
+//           if (feature) {
+//             featureOverlay.getSource().addFeature(feature);
+//           }
+//           highlight = feature;
+//         }
+//         return true; // Stop iteration over features
+//       }
+//     });
+//   };
+
+//   map.on('pointermove', function (evt) {
+//     if (evt.dragging) {
+//       return;
+//     }
+//     const pixel = map.getEventPixel(evt.originalEvent);
+//     displayFeatureInfo(pixel);
+//   });
+
+//   map.on('click', function (evt) {
+//     displayFeatureInfo(evt.pixel);
+//   });
+
+//   setTimeout(() => {
+//     generateLegend();
+//     console.log("Delayed for 1 second.");
+//   }, 2000);
+// });
+
+
+// const villagecheckbox = document.getElementById('VillageBoundary');
+
+// villagecheckbox.addEventListener('change', function () {
+//   const existingVillageLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'villageLayer');
+
+//   if (villagecheckbox.checked) {
+//     const villageLayer = new VectorLayer({
+//       source: new VectorSource({
+//         format: new MVT(),
+//         url: 'http://localhost:8080/geoserver/gwc/service/tms/1.0.0/agis:india_shp_vill_data@EPSG:3857@pbf/{z}/{x}/{y}.pbf'  // Updated URL
+//       }),
+//       style: new Style({
+//         stroke: new Stroke({
+//           color: '#00f',
+//           width: 1
+//         })
+//       })
+//     });
+
+//     villageLayer.set('name', 'villageLayer');
+//     map.addLayer(villageLayer);
+//   } else {
+//     if (existingVillageLayer) {
+//       map.removeLayer(existingVillageLayer);
+//     }
+//   }
+
+//   let highlight;
+//   const featureOverlay = new VectorLayer({
+//     source: new VectorSource(),
+//     map: map,
+//     style: new Style({
+//       stroke: new Stroke({
+//         color: 'rgba(0, 255, 0, 1)',
+//         width: 2
+//       })
+//     })
+//   });
+
+//   const displayFeatureInfo = function (pixel) {
+//     map.forEachFeatureAtPixel(pixel, function (feature, layer) {
+//       if (layer && layer.get('name') === 'villageLayer') {
+//         document.getElementById('info').style.display = "block";
+//         const info = document.getElementById('info-content');
+//         const properties = feature.getProperties();
+//         info.innerHTML = `
+//           <table style="border-collapse: collapse; width: 100%;">
+//             <thead>
+//               <tr>
+//                 <th style="border: 1px solid black; padding: 8px; text-align: left;">${properties.District}</th>
+//                 <th style="border: 1px solid black; padding: 8px; text-align: left;">${properties.Circle}</th>
+//                 <th style="border: 1px solid black; padding: 8px; text-align: left;">${properties.Village}</th>
+//               </tr>
+//             </thead>
+//           </table>`;
+//         if (feature !== highlight) {
+//           if (highlight) {
+//             featureOverlay.getSource().removeFeature(highlight);
+//           }
+//           if (feature) {
+//             featureOverlay.getSource().addFeature(feature);
+//           }
+//           highlight = feature;
+//         }
+//         return true;
+//       }
+//     });
+//   };
+
+//   const debounce = (func, delay) => {
+//     let timeout;
+//     return (...args) => {
+//       clearTimeout(timeout);
+//       timeout = setTimeout(() => func.apply(this, args), delay);
+//     };
+//   };
+
+//   map.on('pointermove', debounce(function (evt) {
+//     if (evt.dragging) {
+//       return;
+//     }
+//     const pixel = map.getEventPixel(evt.originalEvent);
+//     displayFeatureInfo(pixel);
+//   }, 50));
+
+//   map.on('click', function (evt) {
+//     displayFeatureInfo(evt.pixel);
+//   });
+
+//   setTimeout(() => {
+//     generateLegend();
+//     console.log("Delayed for 1 second.");
+//   }, 2000);
+// });
+
+// ---------------
+// label
+
+// 
+
+// labels----------------------------------------------------------
+
+// ASSAM BOUND
+// village Layer
+const villageLableLayer = new TileLayer({
+  source: new TileWMS({
+    url: 'http://localhost:8080/geoserver/wms',
+    params: {
+      'LAYERS': 'agis:india_shp_vill_data',
+      'TILED': true,
+      'INFO_FORMAT': 'application/json', // Ensure the response is in JSON format
+      // 'SLD_BODY': sldEncoded // Use custom SLD style
+    },
+    crossOrigin: "Anonymous",
+    serverType: 'geoserver',
+
+  }),
+  visible: false,
+  name: 'villageLableLayer'
+
 });
 
+map.addLayer(villageLableLayer)
+document.getElementById("labelVill").addEventListener("click", function () {
+  var layers = map.getLayers().getArray();
+  layers.forEach(function (layer) {
+    // console.log(layer)
+    console.log("layer.get('visible')st")
 
-// ---Upload
+    console.log(layer.get('name'))
+    console.log(layer.get('visible'))
+
+    console.log("layer.get('visible')en")
+
+    if (layer.get('name') === "villageLableLayer") {
+      if (layer.get('visible') === true) {
+        layer.setVisible(false);
+      } else {
+        layer.setVisible(true);
+      }
+    }
+  });
+})
+// dist layer 
+const distLableLayer = new TileLayer({
+  source: new TileWMS({
+    url: 'http://localhost:8080/geoserver/wms',
+    params: {
+      'LAYERS': 'agis:assam_state_dist',
+      'TILED': true,
+      'INFO_FORMAT': 'application/json', // Ensure the response is in JSON format
+      // 'SLD_BODY': sldEncoded // Use custom SLD style
+    },
+    crossOrigin: "Anonymous",
+    serverType: 'geoserver',
+
+  }),
+  visible: false,
+  name: 'distLableLayer'
+
+});
+
+map.addLayer(distLableLayer)
+document.getElementById("labelDist").addEventListener("click", function () {
+  var layers = map.getLayers().getArray();
+  layers.forEach(function (layer) {
+    // console.log(layer)
+    console.log("layer.get('visible')st")
+
+    console.log(layer.get('name'))
+    console.log(layer.get('visible'))
+
+    console.log("layer.get('visible')en")
+
+    if (layer.get('name') === "distLableLayer") {
+      if (layer.get('visible') === true) {
+        layer.setVisible(false);
+      } else {
+        layer.setVisible(true);
+      }
+    }
+  });
+})
+
+// state
+const StateLableLayer = new TileLayer({
+  source: new TileWMS({
+    url: 'http://localhost:8080/geoserver/wms',
+    params: {
+      'LAYERS': 'agis:assam_boundary',
+      'TILED': true,
+      'INFO_FORMAT': 'application/json', // Ensure the response is in JSON format
+      // 'SLD_BODY': sldEncoded // Use custom SLD style
+    },
+    crossOrigin: "Anonymous",
+    serverType: 'geoserver',
+
+  }),
+  visible: false,
+  name: 'StateLableLayer'
+
+});
+
+map.addLayer(StateLableLayer)
+document.getElementById("labelState").addEventListener("click", function () {
+  var layers = map.getLayers().getArray();
+  layers.forEach(function (layer) {
+    // console.log(layer)
+    console.log("layer.get('visible')st")
+
+    console.log(layer.get('name'))
+    console.log(layer.get('visible'))
+
+    console.log("layer.get('visible')en")
+
+    if (layer.get('name') === "StateLableLayer") {
+      if (layer.get('visible') === true) {
+        layer.setVisible(false);
+      } else {
+        layer.setVisible(true);
+      }
+    }
+  });
+})
 
 
 
 
+// label
+
+
+
+// upload starts
 
 
 document.getElementById("uploadButton").addEventListener('click', function () {
@@ -2047,6 +2684,8 @@ function processData(data, extension) {
       visualizeGeoJSON(data);
     } else if (extension === 'csv') {
       visualizeCSV(data);
+    } else if (extension === 'kml') {
+      visualizeKML(data);
     } else {
       console.error("Unsupported file format.");
     }
@@ -2057,7 +2696,8 @@ function processData(data, extension) {
 
 function visualizeGeoJSON(data) {
   try {
-    var features = JSON.parse(data).features;
+    var geojson = JSON.parse(data);
+    var features = geojson.features;
 
     if (!features || !Array.isArray(features)) {
       console.error("Invalid GeoJSON data format.");
@@ -2066,28 +2706,41 @@ function visualizeGeoJSON(data) {
 
     features.forEach(function (feature) {
       var geometry = feature.geometry;
-      if (geometry && geometry.type === 'Point' && Array.isArray(geometry.coordinates) && geometry.coordinates.length === 2) {
+      if (geometry) {
+        var type = geometry.type;
         var coordinates = geometry.coordinates;
-        var latitude = coordinates[1];
-        var longitude = coordinates[0];
 
-        if (!isNaN(latitude) && !isNaN(longitude)) {
-          var marker = new Feature({
-            geometry: new Point(fromLonLat([longitude, latitude]))
+        var geometryFeature;
+        if (type === 'Point') {
+          geometryFeature = new Feature({
+            geometry: new Point(fromLonLat(coordinates))
           });
-
-          var vectorSource = new VectorSource({
-            features: [marker]
+        } else if (type === 'LineString') {
+          geometryFeature = new Feature({
+            geometry: new LineString(coordinates.map(coord => fromLonLat(coord)))
           });
-
-          var vectorLayer = new VectorLayer({
-            source: vectorSource
+        } else if (type === 'Polygon') {
+          geometryFeature = new Feature({
+            geometry: new Polygon(coordinates.map(ring => ring.map(coord => fromLonLat(coord))))
           });
-
-          map.addLayer(vectorLayer);
+        } else if (type === 'MultiPolygon') {
+          geometryFeature = new Feature({
+            geometry: new MultiPolygon(coordinates.map(polygon => polygon.map(ring => ring.map(coord => fromLonLat(coord)))))
+          });
         } else {
-          console.error("Invalid latitude or longitude in GeoJSON.");
+          console.error("Unsupported GeoJSON geometry type.");
+          return;
         }
+
+        var vectorSource = new VectorSource({
+          features: [geometryFeature]
+        });
+
+        var vectorLayer = new VectorLayer({
+          source: vectorSource
+        });
+
+        map.addLayer(vectorLayer);
       } else {
         console.error("Invalid GeoJSON feature format.");
       }
@@ -2097,18 +2750,14 @@ function visualizeGeoJSON(data) {
   }
 }
 
-
 function visualizeCSV(data) {
-  console.log("csv")
+  console.log("csv");
   try {
-    // Your CSV parsing and visualization logic here
-    // For example, you can use a library like PapaParse for CSV parsing
-
-    new Papa.parse(data, {
+    // Parse CSV data
+    Papa.parse(data, {
       header: true,
       complete: function (results) {
         results.data.forEach(function (row) {
-          // Assuming latitude and longitude columns are named 'latitude' and 'longitude'
           var latitude = parseFloat(row.latitude);
           var longitude = parseFloat(row.longitude);
 
@@ -2137,6 +2786,47 @@ function visualizeCSV(data) {
   }
 }
 
+function visualizeKML(data) {
+  try {
+    // Log the raw KML data for debugging
+    console.log("Raw KML data:", data);
+
+    // Initialize the KML parser
+    const parser = new KML();
+    
+    // Parse the KML data into OpenLayers features
+    const features = parser.readFeatures(data, {
+      featureProjection: 'EPSG:3857'
+    });
+
+    // Log the parsed features for debugging
+    console.log("Parsed KML features:", features);
+
+    if (features.length === 0) {
+      console.error("No features found in KML.");
+      return;
+    }
+
+    // Create a VectorSource with the parsed features
+    const vectorSource = new VectorSource({
+      features: features
+    });
+
+    // Create a VectorLayer with the VectorSource
+    const vectorLayer = new VectorLayer({
+      source: vectorSource
+    });
+
+    // Add the VectorLayer to the map
+    map.addLayer(vectorLayer);
+  } catch (error) {
+    console.error("Error processing KML:", error);
+  }
+}
+
+
+
+
 
 
 // ------------
@@ -2155,7 +2845,7 @@ function toggleLayer(layerName) {
     layers.forEach(function (layer) {
       if (layer.get('name') === 'standardLayer' || layer.get('name') === 'sateliteLayer' || layer.get('name') === 'transportLayer' || layer.get('name') === 'labelLayer') {
         layer.setVisible(false);
-      } else {
+      } else if (layer.get('name') === 'osm') {
         layer.setVisible(true);
       }
     });
@@ -2166,7 +2856,7 @@ function toggleLayer(layerName) {
     layers.forEach(function (layer) {
       if (layer.get('name') === 'standardLayer' || layer.get('name') === 'osm' || layer.get('name') === 'transportLayer') {
         layer.setVisible(false);
-      } else {
+      } else if (layer.get('name') === 'sateliteLayer' || layer.get('name') === 'labelLayer') {
         layer.setVisible(true);
       }
     });
@@ -2177,7 +2867,7 @@ function toggleLayer(layerName) {
     layers.forEach(function (layer) {
       if (layer.get('name') === 'osm' || layer.get('name') === 'sateliteLayer' || layer.get('name') === 'transportLayer' || layer.get('name') === 'labelLayer') {
         layer.setVisible(false);
-      } else {
+      } else if (layer.get('name') === 'standardLayer') {
         layer.setVisible(true);
       }
     });
@@ -2188,7 +2878,7 @@ function toggleLayer(layerName) {
     layers.forEach(function (layer) {
       if (layer.get('name') === 'osm' || layer.get('name') === 'standardLayer' || layer.get('name') === 'sateliteLayer' || layer.get('name') === 'labelLayer') {
         layer.setVisible(false);
-      } else {
+      } else if (layer.get('name') === 'transportLayer') {
         layer.setVisible(true);
       }
     });
@@ -2215,6 +2905,8 @@ window.handletoggleLayer = function (layerName) {
 function toggleLabelLayer(layerName) {
   var layers = map.getLayers().getArray();
   layers.forEach(function (layer) {
+    console.log(layer)
+
     console.log(layer.get('visible'))
     if (layer.get('name') === layerName) {
       if (layer.get('visible') === true) {
@@ -2941,15 +3633,15 @@ drawPointBuffer.on('drawend', async (event) => {
   let lyr = document.getElementById("Buffer-layer").value
   let workspace, datastore;
 
-  if(lyr==='village'){
-   workspace = "agis";
-   datastore = "india_shp_vill_data";
+  if (lyr === 'village') {
+    workspace = "agis";
+    datastore = "india_shp_vill_data";
 
   }
-  else if(lyr==='ssa2022'){
-    
-     workspace = "WS_ONE";
-     datastore = "SSA_DATA_20222";
+  else if (lyr === 'ssa2022') {
+
+    workspace = "agis";
+    datastore = "ssa_data_20222";
 
   }
 

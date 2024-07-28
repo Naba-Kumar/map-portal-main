@@ -645,6 +645,8 @@ footer  #lonlat_display{
     right: 25px;
     z-index: 3;
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
     
 }
 #base_layer_container #base_layer_container_icon{
@@ -703,16 +705,42 @@ footer  #lonlat_display{
     color: #fff;
 }
 
-#label{
-    font-size: 12px;
+#label0{
+    font-size: 13px;
     background-color: #03494e;
-    margin-top: 20px;
+    margin-top: 7px;
     color: #fff;
     padding: 7px 3px;
     font-family: 'Courier New', Courier, monospace;
     width: 80px;
 }
-
+#labelState{
+    font-size: 13px;
+    background-color: #03494e;
+    margin-top: 7px;
+    color: #fff;
+    padding: 7px 3px;
+    font-family: 'Courier New', Courier, monospace;
+    width: 80px;
+}
+#labelDist{
+    font-size: 13px;
+    background-color: #03494e;
+    margin-top: 7px;
+    color: #fff;
+    padding: 7px 3px;
+    font-family: 'Courier New', Courier, monospace;
+    width: 80px;
+}
+#labelVill{
+    font-size: 13px;
+    background-color: #03494e;
+    margin-top: 7px;
+    color: #fff;
+    padding: 7px 3px;
+    font-family: 'Courier New', Courier, monospace;
+    width: 80px;
+}
 
 
 
