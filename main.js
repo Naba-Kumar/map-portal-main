@@ -14,7 +14,7 @@ import Draw from 'ol/interaction/Draw.js';
 import Overlay from 'ol/Overlay.js';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style.js';
 import Circle from 'ol/geom/Circle.js';
-import { LineString, Polygon, MultiPolygon  } from 'ol/geom.js';
+import { LineString, Polygon, MultiPolygon } from 'ol/geom.js';
 import { Vector as VectorSource } from 'ol/source.js';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer.js';
 import TileWMS from 'ol/source/TileWMS.js';
@@ -853,9 +853,9 @@ map.addControl(mousePos);
 //   }
 
 //   // Create a vector source for the district layer
-//   const existingDistrictLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'districtLayer');
-//   if (existingDistrictLayer) {
-//     map.removeLayer(existingDistrictLayer);
+//   const existingDistrictFiltered = map.getLayers().getArray().find(layer => layer.get('name') === 'districtFiltered');
+//   if (existingDistrictFiltered) {
+//     map.removeLayer(existingDistrictFiltered);
 //   }
 
 //   // Remove previous state layer if exists
@@ -899,7 +899,7 @@ map.addControl(mousePos);
 
 
 //     // Create a district vector layer with the filtered source
-//     const districtLayer = new VectorLayer({
+//     const districtFiltered = new VectorLayer({
 //       source: districtVectorSource,
 //       style: new Style({
 //         stroke: new Stroke({
@@ -909,16 +909,16 @@ map.addControl(mousePos);
 //         }),
 //       })
 //     });
-//     districtLayer.set('name', 'districtLayer');
+//     districtFiltered.set('name', 'districtFiltered');
 
-//     map.addLayer(districtLayer);
+//     map.addLayer(districtFiltered);
 
-//     districtLayer.getSource().on('addfeature', function () {
+//     districtFiltered.getSource().on('addfeature', function () {
 
-//       // Get the geometry of the districtLayer
-//       // var districtLayerClipGeometry = districtLayer.getSource().getFeatures()[1].getGeometry();
+//       // Get the geometry of the districtFiltered
+//       // var districtFilteredClipGeometry = districtFiltered.getSource().getFeatures()[1].getGeometry();
 
-//       var districtLayerClipGeometry = districtLayer.getSource().getFeatures().find(feature => getDistrictFilter(selectedDistrict)(feature)).getGeometry();
+//       var districtFilteredClipGeometry = districtFiltered.getSource().getFeatures().find(feature => getDistrictFilter(selectedDistrict)(feature)).getGeometry();
 
 
 //       // console.log(stateLayer.getSource().getFeatures())
@@ -938,11 +938,11 @@ map.addControl(mousePos);
 
 //       var boundingBoxGeoJSON = format.writeGeometryObject(boundingBoxPolygon);
 
-//       // Convert the districtLayerClipGeometry to GeoJSON
-//       var clipGeoJSON = format.writeGeometryObject(districtLayerClipGeometry);
+//       // Convert the districtFilteredClipGeometry to GeoJSON
+//       var clipGeoJSON = format.writeGeometryObject(districtFilteredClipGeometry);
 //       // console.log(clipGeoJSON())
 
-//       // Subtract the districtLayerClipGeometry from the bounding box geometry
+//       // Subtract the districtFilteredClipGeometry from the bounding box geometry
 //       var outsidePolygonGeoJSON = turf.difference(boundingBoxGeoJSON, clipGeoJSON);
 
 //       // Convert the resulting GeoJSON back to an OpenLayers feature
@@ -1106,7 +1106,7 @@ function village_filter(option) {
   const infopopup = document.getElementById("villageInfo");
 
   if (option === "clear") {
-    removeExistingLayer('villageLayer');
+    removeExistingLayer('villageFiltered');
     removeExistingLayer('villageBoundary');
     infopopup.style.display = "none";
     return;
@@ -1351,44 +1351,44 @@ function village_filter(option) {
     infopopup.style.display = "block"
   }
 
-  removeExistingLayer('villageLayer');
+  removeExistingLayer('villageFiltered');
   removeExistingLayer('villageBoundary');
 
-  let villageLayer;
+  let villageFiltered;
   if (selectedDistrict && !selectedCircle && !selectedVillage) {
     // Show all villages and info within the district
-    villageLayer = addLayerWithGeoJSON(
+    villageFiltered = addLayerWithGeoJSON(
       './village_layer.geojson',
       getFilterByProperty('District', selectedDistrict),
       new Style({
         stroke: new Stroke({
-          color: '#fcba03',
+          color: '#fa5d02',
           lineCap: 'butt',
           width: 4
         }),
         fill: new Fill({
-          color: 'rgba(9, 0, 255, .3)'
+          color: 'rgba(9, 0, 255, .1)'
         })
       }),
-      'villageLayer'
+      'villageFiltered'
     );
 
   } else if (selectedDistrict && selectedCircle && !selectedVillage) {
     // Show all villages and info within the district and circle
-    villageLayer = addLayerWithGeoJSON(
+    villageFiltered = addLayerWithGeoJSON(
       './village_layer.geojson',
       feature => getFilterByProperty('District', selectedDistrict)(feature) && getFilterByProperty('Circle', selectedCircle)(feature),
       new Style({
         stroke: new Stroke({
-          color: '#fcba03',
+          color: '#fa5d02',
           lineCap: 'butt',
           width: 4
         }),
         fill: new Fill({
-          color: 'rgba(9, 0, 255, .3)'
+          color: 'rgba(9, 0, 255, .1)'
         })
       }),
-      'villageLayer'
+      'villageFiltered'
     );
 
   } else if (selectedDistrict && selectedCircle && selectedVillage) {
@@ -1398,7 +1398,7 @@ function village_filter(option) {
     if (option === 'mask') {
       filterStyle = new Style({
         stroke: new Stroke({
-          color: '#fcba03',
+          color: '#fa5d02',
           lineCap: 'butt',
           width: 2
         }),
@@ -1410,7 +1410,7 @@ function village_filter(option) {
     } else {
       filterStyle = new Style({
         stroke: new Stroke({
-          color: '#fcba03',
+          color: '#fa5d02',
           lineCap: 'butt',
           width: 2
         }),
@@ -1419,11 +1419,11 @@ function village_filter(option) {
         })
       })
     }
-    villageLayer = addLayerWithGeoJSON(
+    villageFiltered = addLayerWithGeoJSON(
       './village_layer.geojson',
       getFilterByProperty('Village', selectedVillage),
       filterStyle,
-      'villageLayer'
+      'villageFiltered'
     );
 
 
@@ -1435,16 +1435,17 @@ function village_filter(option) {
     map: map,
     style: new Style({
       stroke: new Stroke({
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: '#f7d2b5',
         width: 2,
       }),
+
     }),
   });
 
   const displayFeatureInfo = function (pixel) {
     // const info = document.getElementById('info-content');
     map.forEachFeatureAtPixel(pixel, function (feature, layer) {
-      if (layer && layer.get('name') === 'villageLayer') {
+      if (layer && layer.get('name') === 'villageFiltered') {
         document.getElementById('info').style.display = "block";
         const info = document.getElementById('info-content');
         if (feature) {
@@ -1892,7 +1893,7 @@ document.getElementById('ssa_clearButton').addEventListener('click', function ()
 
 
 const villageCheckbox = document.getElementById('VillageBoundary');
-const villageBoundaryLayer = new TileLayer({
+const villageBoundary = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -1905,11 +1906,13 @@ const villageBoundaryLayer = new TileLayer({
     serverType: 'geoserver',
   }),
   visible: false,
+  name: "villageBoundary"
+
 });
 
 
 const dstrictCheckbox = document.getElementById('DistrictBoundary');
-const dstrictBoundaryLayer = new TileLayer({
+const dstrictBoundary = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -1923,10 +1926,12 @@ const dstrictBoundaryLayer = new TileLayer({
 
   }),
   visible: false,
+  name: "dstrictBoundary"
+
 });
 
 const stateCheckbox = document.getElementById('stateboundary');
-const stateBoundaryLayer = new TileLayer({
+const stateBoundary = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -1939,10 +1944,12 @@ const stateBoundaryLayer = new TileLayer({
     serverType: 'geoserver',
   }),
   visible: false,
+  name: "stateBoundary"
+
 });
 
 const ssaCheckbox = document.getElementById('ssa');
-const ssaBoundaryLayer = new TileLayer({
+const ssaLayer = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -1955,6 +1962,16 @@ const ssaBoundaryLayer = new TileLayer({
     serverType: 'geoserver',
   }),
   visible: false,
+  name: "ssaLayer",
+  style: new Style({
+    stroke: new Stroke({
+      color: 'rgba(0, 255, 0, 0.7)',
+      width: 2,
+    }),
+    fill: new Fill({
+      color: 'rgba(255, 255, 0, 0.1)'
+    }),
+  }),
 });
 
 let highlight;
@@ -1967,7 +1984,7 @@ const featureOverlay = new VectorLayer({
       width: 2,
     }),
     fill: new Fill({
-      color: 'rgba(255, 255, 255, 0.3)'
+      color: 'rgba(255, 255, 255, 0.1)'
     }),
   }),
 });
@@ -1989,10 +2006,10 @@ const displayFeatureInfo = function (pixel, layer) {
         const info = document.getElementById('info-content');
         if (data.features && data.features.length > 0) {
           const feature = data.features[0];
-  
+
           let layer_nm = "";
           console.log()
-        
+
 
 
           let infoHTML = `<h4 style="text-align: center; margin:10px"> Information</h4>`;
@@ -2008,9 +2025,9 @@ const displayFeatureInfo = function (pixel, layer) {
       <tbody>`;
 
           // Iterate over each feature to populate the table rows
-          console.log(data.features[0] )
-          data.features .forEach(function (feature) {
-            const properties = feature.properties;            ;
+          console.log(data.features[0])
+          data.features.forEach(function (feature) {
+            const properties = feature.properties;;
             for (const key in properties) {
               if (key !== 'geometry') {
                 infoHTML += `<tr>
@@ -2073,7 +2090,7 @@ const onPointerMove = function (evt) {
     return;
   }
   const pixel = map.getEventPixel(evt.originalEvent);
-  const layers = [villageBoundaryLayer, dstrictBoundaryLayer,ssaBoundaryLayer];
+  const layers = [villageBoundary, dstrictBoundary, ssaLayer];
   for (let layer of layers) {
     if (layer.getVisible() && layer.getSource().getFeatureInfoUrl) {
       displayFeatureInfo(pixel, layer);
@@ -2084,7 +2101,7 @@ const onPointerMove = function (evt) {
 
 const onClick = function (evt) {
   const pixel = evt.pixel;
-  const layers = [villageBoundaryLayer, dstrictBoundaryLayer, ssaBoundaryLayer];
+  const layers = [villageBoundary, dstrictBoundary, ssaLayer];
   for (let layer of layers) {
     if (layer.getVisible() && layer.getSource().getFeatureInfoUrl) {
       displayFeatureInfo(pixel, layer);
@@ -2099,11 +2116,16 @@ const handleLayerChange = function (layer, checkbox) {
     map.addLayer(layer);
     map.on('pointermove', onPointerMove);
     map.on('click', onClick);
+    setTimeout(() => {
+      generateLegend()
+      console.log("Delayed for 1 second.");
+    }, "2000");
 
   } else {
     map.removeLayer(layer);
     map.un('pointermove', onPointerMove);
     map.un('click', onClick);
+
   }
   setTimeout(() => {
     generateLegend();
@@ -2111,31 +2133,31 @@ const handleLayerChange = function (layer, checkbox) {
   }, 2000);
 };
 ssaCheckbox.addEventListener('change', function () {
-  handleLayerChange(ssaBoundaryLayer, this);
+  handleLayerChange(ssaLayer, this);
 });
 villageCheckbox.addEventListener('change', function () {
-  handleLayerChange(villageBoundaryLayer, this);
+  handleLayerChange(villageBoundary, this);
 });
 
 dstrictCheckbox.addEventListener('change', function () {
-  handleLayerChange(dstrictBoundaryLayer, this);
+  handleLayerChange(dstrictBoundary, this);
 });
 
 stateCheckbox.addEventListener('change', function () {
-  handleLayerChange(stateBoundaryLayer, this);
+  handleLayerChange(stateBoundary, this);
 });
 
 
-villageBoundaryLayer.getSource().on('tileloaderror', function (event) {
+villageBoundary.getSource().on('tileloaderror', function (event) {
   console.error('Tile load error:', event);
 });
-dstrictBoundaryLayer.getSource().on('tileloaderror', function (event) {
+dstrictBoundary.getSource().on('tileloaderror', function (event) {
   console.error('Tile load error:', event);
 });
-stateBoundaryLayer.getSource().on('tileloaderror', function (event) {
+stateBoundary.getSource().on('tileloaderror', function (event) {
   console.error('Tile load error:', event);
 });
-ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
+ssaLayer.getSource().on('tileloaderror', function (event) {
   console.error('Tile load error:', event);
 });
 // 
@@ -2181,7 +2203,7 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 
 // districtcheckbox.addEventListener('change', function () {
 //   // Get the existing state layer if it exists
-//   const existingDistrictLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'districtLayer');
+//   const existingDistrictFiltered = map.getLayers().getArray().find(layer => layer.get('name') === 'districtFiltered');
 
 //   if (districtcheckbox.checked) {
 //     // Create a vector source for the state layer
@@ -2209,7 +2231,7 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 //     });
 
 //     // Create a state vector layer with the filtered source
-//     const districtLayer = new VectorLayer({
+//     const districtFiltered = new VectorLayer({
 //       source: districtVectorSource,
 //       style: new Style({
 //         stroke: new Stroke({
@@ -2220,14 +2242,14 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 //       })
 //     });
 
-//     districtLayer.set('name', 'districtLayer');
+//     districtFiltered.set('name', 'districtFiltered');
 
 //     // Add the layer to the map
-//     map.addLayer(districtLayer);
+//     map.addLayer(districtFiltered);
 //   } else {
 //     // If the checkbox is unchecked, remove the existing state layer if it exists
-//     if (existingDistrictLayer) {
-//       map.removeLayer(existingDistrictLayer);
+//     if (existingDistrictFiltered) {
+//       map.removeLayer(existingDistrictFiltered);
 //     }
 //   }
 //   setTimeout(() => {
@@ -2302,7 +2324,7 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 
 // districtcheckbox.addEventListener('change', function () {
 //   // Get the existing state layer if it exists
-//   const existingDistrictLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'districtLayer');
+//   const existingDistrictFiltered = map.getLayers().getArray().find(layer => layer.get('name') === 'districtFiltered');
 
 //   if (districtcheckbox.checked) {
 //     // Create a vector source for the state layer
@@ -2330,7 +2352,7 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 //     // });
 
 //     // Create a district vector layer with the filtered source
-//     const districtLayer = new VectorLayer({
+//     const districtFiltered = new VectorLayer({
 //       source: districtVectorSource,
 //       style: new Style({
 //         stroke: new Stroke({
@@ -2344,14 +2366,14 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 //       })
 //     });
 
-//     districtLayer.set('name', 'districtLayer');
+//     districtFiltered.set('name', 'districtFiltered');
 
 //     // Add the layer to the map
-//     map.addLayer(districtLayer);
+//     map.addLayer(districtFiltered);
 //   } else {
 //     // If the checkbox is unchecked, remove the existing district layer if it exists
-//     if (existingDistrictLayer) {
-//       map.removeLayer(existingDistrictLayer);
+//     if (existingDistrictFiltered) {
+//       map.removeLayer(existingDistrictFiltered);
 //     }
 //   }
 
@@ -2372,7 +2394,7 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 //     // const info = document.getElementById('info-content');
 //     map.forEachFeatureAtPixel(pixel, function (feature, layer) {
 //       console.log(layer.get('name'))
-//       if (layer && layer.get('name') === 'districtLayer') {
+//       if (layer && layer.get('name') === 'districtFiltered') {
 //         document.getElementById('info').style.display = "block";
 //         const info = document.getElementById('info-content');
 //         if (feature) {
@@ -2425,10 +2447,10 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 // const villagecheckbox = document.getElementById('VillageBoundary');
 
 // villagecheckbox.addEventListener('change', function () {
-//   const existingVillageLayer = map.getLayers().getArray().find(layer => layer.get('name') === 'villageLayer');
+//   const existingVillageFiltered = map.getLayers().getArray().find(layer => layer.get('name') === 'villageFiltered');
 
 //   if (villagecheckbox.checked) {
-//     const villageLayer = new VectorLayer({
+//     const villageFiltered = new VectorLayer({
 //       source: new VectorSource({
 //         format: new MVT(),
 //         url: 'http://localhost:8080/geoserver/gwc/service/tms/1.0.0/agis:india_shp_vill_data@EPSG:3857@pbf/{z}/{x}/{y}.pbf'  // Updated URL
@@ -2441,11 +2463,11 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 //       })
 //     });
 
-//     villageLayer.set('name', 'villageLayer');
-//     map.addLayer(villageLayer);
+//     villageFiltered.set('name', 'villageFiltered');
+//     map.addLayer(villageFiltered);
 //   } else {
-//     if (existingVillageLayer) {
-//       map.removeLayer(existingVillageLayer);
+//     if (existingVillageFiltered) {
+//       map.removeLayer(existingVillageFiltered);
 //     }
 //   }
 
@@ -2463,7 +2485,7 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 
 //   const displayFeatureInfo = function (pixel) {
 //     map.forEachFeatureAtPixel(pixel, function (feature, layer) {
-//       if (layer && layer.get('name') === 'villageLayer') {
+//       if (layer && layer.get('name') === 'villageFiltered') {
 //         document.getElementById('info').style.display = "block";
 //         const info = document.getElementById('info-content');
 //         const properties = feature.getProperties();
@@ -2526,7 +2548,7 @@ ssaBoundaryLayer.getSource().on('tileloaderror', function (event) {
 
 // ASSAM BOUND
 // village Layer
-const villageLableLayer = new TileLayer({
+const villageLabelLayer = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -2540,11 +2562,11 @@ const villageLableLayer = new TileLayer({
 
   }),
   visible: false,
-  name: 'villageLableLayer'
+  name: 'villageLabelLayer'
 
 });
 
-map.addLayer(villageLableLayer)
+map.addLayer(villageLabelLayer)
 document.getElementById("labelVill").addEventListener("click", function () {
   var layers = map.getLayers().getArray();
   layers.forEach(function (layer) {
@@ -2556,7 +2578,7 @@ document.getElementById("labelVill").addEventListener("click", function () {
 
     console.log("layer.get('visible')en")
 
-    if (layer.get('name') === "villageLableLayer") {
+    if (layer.get('name') === "villageLabelLayer") {
       if (layer.get('visible') === true) {
         layer.setVisible(false);
       } else {
@@ -2566,7 +2588,7 @@ document.getElementById("labelVill").addEventListener("click", function () {
   });
 })
 // dist layer 
-const distLableLayer = new TileLayer({
+const distLabelLayer = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -2580,11 +2602,11 @@ const distLableLayer = new TileLayer({
 
   }),
   visible: false,
-  name: 'distLableLayer'
+  name: 'distLabelLayer'
 
 });
 
-map.addLayer(distLableLayer)
+map.addLayer(distLabelLayer)
 document.getElementById("labelDist").addEventListener("click", function () {
   var layers = map.getLayers().getArray();
   layers.forEach(function (layer) {
@@ -2596,7 +2618,7 @@ document.getElementById("labelDist").addEventListener("click", function () {
 
     console.log("layer.get('visible')en")
 
-    if (layer.get('name') === "distLableLayer") {
+    if (layer.get('name') === "distLabelLayer") {
       if (layer.get('visible') === true) {
         layer.setVisible(false);
       } else {
@@ -2607,7 +2629,7 @@ document.getElementById("labelDist").addEventListener("click", function () {
 })
 
 // state
-const StateLableLayer = new TileLayer({
+const StateLabelLayer = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -2621,11 +2643,11 @@ const StateLableLayer = new TileLayer({
 
   }),
   visible: false,
-  name: 'StateLableLayer'
+  name: 'StateLabelLayer'
 
 });
 
-map.addLayer(StateLableLayer)
+map.addLayer(StateLabelLayer)
 document.getElementById("labelState").addEventListener("click", function () {
   var layers = map.getLayers().getArray();
   layers.forEach(function (layer) {
@@ -2637,7 +2659,7 @@ document.getElementById("labelState").addEventListener("click", function () {
 
     console.log("layer.get('visible')en")
 
-    if (layer.get('name') === "StateLableLayer") {
+    if (layer.get('name') === "StateLabelLayer") {
       if (layer.get('visible') === true) {
         layer.setVisible(false);
       } else {
@@ -2793,7 +2815,7 @@ function visualizeKML(data) {
 
     // Initialize the KML parser
     const parser = new KML();
-    
+
     // Parse the KML data into OpenLayers features
     const features = parser.readFeatures(data, {
       featureProjection: 'EPSG:3857'
@@ -3156,6 +3178,8 @@ window.handle_clear_alll = function () {
 // --------print
 // --------print
 // --------print
+
+
 function generateLegend() {
   const existingLegend = document.getElementById('legend');
   if (existingLegend) {
@@ -3164,9 +3188,6 @@ function generateLegend() {
 
   const legendElement = document.createElement('div');
   legendElement.id = 'legend';
-  // legendElement.style.position = 'absolute';
-  // legendElement.style.bottom = '100px'; // Adjust as needed
-  // legendElement.style.right = '10px'; // Adjust as needed
   legendElement.style.display = 'flex';
   legendElement.style.flexDirection = 'column';
   legendElement.style.backgroundColor = 'white';
@@ -3176,51 +3197,70 @@ function generateLegend() {
   const layers = map.getLayers().getArray();
   layers.forEach(layer => {
     const layerName = layer.get('name');
-    if (layerName && !layerName.includes('search')) {
+
+    if (layerName &&
+      // !layerName.includes('labe') &&
+      // !layerName.includes('LabelL') &&
+      !layerName.includes('ssa') &&
+      !layerName.includes('sateliteLayer') &&
+      !layerName.includes('sateliteLayer') &&
+      !layerName.includes('osm') &&
+      !layerName.includes('standardLayer') &&
+      !layerName.includes('transportLayer')
+
+    ) {
       const source = layer.getSource();
+      const legendItem = document.createElement('div');
+      legendItem.style.display = 'flex';
+      legendItem.style.alignItems = 'center';
+      legendItem.style.marginBottom = '5px';
+      legendItem.style.fontWeight = '900';
+
+      const colorBox = document.createElement('div');
+      colorBox.style.width = '20px';
+      colorBox.style.height = '20px';
+      colorBox.style.marginRight = '10px';
+
       if (source instanceof VectorSource) {
         const features = source.getFeatures();
         if (features.length > 0) {
           const feature = features[0];
           const style = layer.getStyle() instanceof Style ? layer.getStyle() : layer.getStyle()(feature);
 
-          const legendItem = document.createElement('div');
-          legendItem.style.display = 'flex';
-          legendItem.style.alignItems = 'center';
-          legendItem.style.marginBottom = '5px';
-          legendItem.style.fontWeight = '900';
-
-          const colorBox = document.createElement('div');
-          colorBox.style.width = '20px';
-          colorBox.style.height = '20px';
-
-          // Check if the stroke color exists, otherwise use fill color
-          const geometry = feature.getGeometry();
-          if (geometry.getType() === 'Point' && style.getImage() instanceof Circle) {
-            const imageStyle = style.getImage();
-            colorBox.style.backgroundColor = imageStyle.getFill().getColor();
-          } else {
-            if (style.getStroke()) {
-              colorBox.style.backgroundColor = style.getStroke().getColor();
-            } else if (style.getFill()) {
-              colorBox.style.backgroundColor = style.getFill().getColor();
-            }
+          // Extract color from style
+          if (style.getStroke()) {
+            colorBox.style.backgroundColor = style.getStroke().getColor();
+          } else if (style.getFill()) {
+            colorBox.style.backgroundColor = style.getFill().getColor();
           }
-          colorBox.style.marginRight = '10px';
-
-          const label = document.createElement('span');
-          label.innerText = layerName;
-
-          legendItem.appendChild(colorBox);
-          legendItem.appendChild(label);
-          legendElement.appendChild(legendItem);
         }
+      } else if (source instanceof TileWMS) {
+        colorBox.style.backgroundColor = getWMSLayerColor(layerName); // Use function to get color for TileWMS layers
       }
+
+      legendItem.appendChild(colorBox);
+
+      const label = document.createElement('span');
+      label.innerText = layerName;
+      legendItem.appendChild(label);
+      legendElement.appendChild(legendItem);
     }
   });
 
   document.body.appendChild(legendElement);
 }
+
+// Function to define colors for TileWMS layers
+function getWMSLayerColor(layerName) {
+  const colors = {
+    'StateLabelLayer': '#cccccc', // Example color for StateLabelLayer
+    // Add more layers and their colors here
+  };
+  return colors[layerName] || '#f0f0f0'; // Default color
+}
+
+
+
 
 // Sample code to demonstrate the legend generation
 generateLegend();
@@ -3729,7 +3769,7 @@ function assamStateDistFilter(option) {
   const infopopup = document.getElementById("villageInfo");
 
   if (option === "clear") {
-    removeExistingLayer('DistrictLayer');
+    removeExistingLayer('DistrictFiltered');
     removeExistingLayer('DistrictBoundary');
     infopopup.style.display = "none";
     return;
@@ -3929,26 +3969,26 @@ function assamStateDistFilter(option) {
     infopopup.style.display = "block"
   }
 
-  removeExistingLayer('DistrictLayer');
+  removeExistingLayer('DistrictFiltered');
   removeExistingLayer('DistrictBoundary');
 
-  let DistrictLayer;
+  let DistrictFiltered;
   if (selectedState && !selectedDistrict) {
     // Show all villages and info within the district
-    DistrictLayer = addLayerWithGeoJSON(
+    DistrictFiltered = addLayerWithGeoJSON(
       './assam_state_dist.geojson',
       getFilterByProperty('State', selectedState),
       new Style({
         stroke: new Stroke({
-          color: '#fcba03',
+          color: '#ff00fb',
           lineCap: 'butt',
           width: 4
         }),
         fill: new Fill({
-          color: 'rgba(9, 0, 255, .3)'
+          color: 'rgba(9, 0, 255, .1)'
         })
       }),
-      'DistrictLayer'
+      'DistrictFiltered'
     );
 
   } else if (selectedState && selectedDistrict) {
@@ -3958,7 +3998,7 @@ function assamStateDistFilter(option) {
     if (option === 'mask') {
       filterStyle = new Style({
         stroke: new Stroke({
-          color: '#fcba03',
+          color: '#ff00fb',
           lineCap: 'butt',
           width: 2
         }),
@@ -3970,7 +4010,7 @@ function assamStateDistFilter(option) {
     } else {
       filterStyle = new Style({
         stroke: new Stroke({
-          color: '#fcba03',
+          color: '#e48ce6',
           lineCap: 'butt',
           width: 2
         }),
@@ -3979,11 +4019,11 @@ function assamStateDistFilter(option) {
         })
       })
     }
-    DistrictLayer = addLayerWithGeoJSON(
+    DistrictFiltered = addLayerWithGeoJSON(
       './assam_state_dist.geojson',
       getFilterByProperty('District', selectedDistrict),
       filterStyle,
-      'DistrictLayer'
+      'DistrictFiltered'
     );
   }
 
@@ -4002,7 +4042,7 @@ function assamStateDistFilter(option) {
   const displayFeatureInfo = function (pixel) {
     // const info = document.getElementById('info-content');
     map.forEachFeatureAtPixel(pixel, function (feature, layer) {
-      if (layer && layer.get('name') === 'DistrictLayer') {
+      if (layer && layer.get('name') === 'DistrictFiltered') {
         document.getElementById('info').style.display = "block";
         const info = document.getElementById('info-content');
         if (feature) {
