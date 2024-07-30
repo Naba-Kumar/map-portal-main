@@ -73,10 +73,7 @@
                   <input type="checkbox" id="VillageBoundary" class="layer-checkbox">
                   <label for="VillageBoundary">Village Boundary</label>
                 </li>
-                <li>
-                  <input type="checkbox" id="ssa" class="layer-checkbox">
-                  <label for="ssa"> School</label>
-                </li>
+             
                 <li>
                   <input type="checkbox" id="Grampanchayat" class="layer-checkbox">
                   <label for="Grampanchayat"> Grampanchayat</label>
@@ -158,11 +155,14 @@
 
               <li onclick="display_toggle_block_adminState('School')">School</li>
               <ul class="side_menu_optin_block, side_menu_cat3" id="School">
-                <li> <input type="checkbox"> <label for=""> School1 </label></li>
-                <li> <input type="checkbox"> <label for=""> School2 </label></li>
-                <li> <input type="checkbox"> <label for=""> School3 </label></li>
+                <li>
+                  <input type="checkbox" id="ssa" class="layer-checkbox">
+                  <label for="ssa"> School</label>
+                </li>
               </ul>
               </li>
+
+              
 
               <li onclick="display_toggle_block_adminState('MIDC')">MIDC Location</li>
               <ul class="side_menu_optin_block, side_menu_cat3" id="MIDC">
@@ -200,7 +200,7 @@
 
                 <label for="state">Select Village:</label>
                 <select id="village-village" name="village">
-                  <option value="">Select Village</option>
+                  <option value=''>Select Village</option>
                 </select>
               </form>
               <button id="village_selectButton_mask">Mask</button>

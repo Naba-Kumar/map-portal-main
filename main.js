@@ -253,9 +253,6 @@ window.handleFullscreen = function (event) {
 
 
 
-
-
-
 // Measure Tool starts here.................
 
 /**
@@ -1121,10 +1118,19 @@ function village_filter(option) {
   //   return feature.getGeometry().getExtent();
   // }
 
-  function getFilterByProperty(propertyName, value) {
+  function getFilterByProperty(propertyName, value, propertyName1, value1) {
     return function (feature) {
       const propertyValue = feature.get(propertyName);
-      return propertyValue && propertyValue.toLowerCase() === value.toLowerCase();
+      const propertyValue1 = feature.get(propertyName1);
+      if (selectedVillage) {
+        return propertyValue && propertyValue.toLowerCase() === value.toLowerCase() && propertyValue1 && propertyValue1.toLowerCase() === value1.toLowerCase();
+
+      } else {
+        return propertyValue && propertyValue.toLowerCase() === value.toLowerCase();
+
+      }
+
+
     };
   }
 
@@ -1421,7 +1427,7 @@ function village_filter(option) {
     }
     villageFiltered = addLayerWithGeoJSON(
       './village_layer.geojson',
-      getFilterByProperty('Village', selectedVillage),
+      getFilterByProperty('Village', selectedVillage, 'Circle', selectedCircle),
       filterStyle,
       'villageFiltered'
     );
@@ -1821,7 +1827,7 @@ async function ssa_select(option) {
   const displayFeatureInfo = function (pixel) {
     // const info = document.getElementById('info-content');
     map.forEachFeatureAtPixel(pixel, function (feature, layer) {
-      if (layer && layer.get('name') === 'ssaLayer') {
+      if (layer && layer.get('name') === 'ssaLayer' ) {
         document.getElementById('info').style.display = "block";
         const info = document.getElementById('info-content');
         if (feature) {
@@ -2548,7 +2554,7 @@ ssaLayer.getSource().on('tileloaderror', function (event) {
 
 // ASSAM BOUND
 // village Layer
-const villageLabelLayer = new TileLayer({
+const VillageLayer = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -2562,11 +2568,11 @@ const villageLabelLayer = new TileLayer({
 
   }),
   visible: false,
-  name: 'villageLabelLayer'
+  name: 'VillageLayer'
 
 });
 
-map.addLayer(villageLabelLayer)
+map.addLayer(VillageLayer)
 document.getElementById("labelVill").addEventListener("click", function () {
   var layers = map.getLayers().getArray();
   layers.forEach(function (layer) {
@@ -2578,7 +2584,7 @@ document.getElementById("labelVill").addEventListener("click", function () {
 
     console.log("layer.get('visible')en")
 
-    if (layer.get('name') === "villageLabelLayer") {
+    if (layer.get('name') === "VillageLayer") {
       if (layer.get('visible') === true) {
         layer.setVisible(false);
       } else {
@@ -2588,7 +2594,7 @@ document.getElementById("labelVill").addEventListener("click", function () {
   });
 })
 // dist layer 
-const distLabelLayer = new TileLayer({
+const DistrictLayer = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -2602,11 +2608,11 @@ const distLabelLayer = new TileLayer({
 
   }),
   visible: false,
-  name: 'distLabelLayer'
+  name: 'DistrictLayer'
 
 });
 
-map.addLayer(distLabelLayer)
+map.addLayer(DistrictLayer)
 document.getElementById("labelDist").addEventListener("click", function () {
   var layers = map.getLayers().getArray();
   layers.forEach(function (layer) {
@@ -2618,7 +2624,7 @@ document.getElementById("labelDist").addEventListener("click", function () {
 
     console.log("layer.get('visible')en")
 
-    if (layer.get('name') === "distLabelLayer") {
+    if (layer.get('name') === "DistrictLayer") {
       if (layer.get('visible') === true) {
         layer.setVisible(false);
       } else {
@@ -2629,7 +2635,7 @@ document.getElementById("labelDist").addEventListener("click", function () {
 })
 
 // state
-const StateLabelLayer = new TileLayer({
+const StateLayer = new TileLayer({
   source: new TileWMS({
     url: 'http://localhost:8080/geoserver/wms',
     params: {
@@ -2642,12 +2648,12 @@ const StateLabelLayer = new TileLayer({
     serverType: 'geoserver',
 
   }),
-  visible: false,
-  name: 'StateLabelLayer'
+  visible: true,
+  name: 'StateLayer'
 
 });
 
-map.addLayer(StateLabelLayer)
+map.addLayer(StateLayer)
 document.getElementById("labelState").addEventListener("click", function () {
   var layers = map.getLayers().getArray();
   layers.forEach(function (layer) {
@@ -2659,7 +2665,7 @@ document.getElementById("labelState").addEventListener("click", function () {
 
     console.log("layer.get('visible')en")
 
-    if (layer.get('name') === "StateLabelLayer") {
+    if (layer.get('name') === "StateLayer") {
       if (layer.get('visible') === true) {
         layer.setVisible(false);
       } else {
@@ -3204,6 +3210,8 @@ function generateLegend() {
       !layerName.includes('ssa') &&
       !layerName.includes('sateliteLayer') &&
       !layerName.includes('sateliteLayer') &&
+      !layerName.includes('labelLayer') &&
+      !layerName.includes('Boundary') &&
       !layerName.includes('osm') &&
       !layerName.includes('standardLayer') &&
       !layerName.includes('transportLayer')
@@ -3253,7 +3261,11 @@ function generateLegend() {
 // Function to define colors for TileWMS layers
 function getWMSLayerColor(layerName) {
   const colors = {
-    'StateLabelLayer': '#cccccc', // Example color for StateLabelLayer
+    'StateLayer': '#000', // Example color for StateLayer
+    'DistrictLayer': '#a0a', // Example color for StateLayer
+    'VillageLayer': '#ebfc03', // Example color for StateLayer
+
+
     // Add more layers and their colors here
   };
   return colors[layerName] || '#f0f0f0'; // Default color
@@ -3312,12 +3324,8 @@ const processCanvas = (width, height, canvases, mapContext, callback) => {
       .split(',')
       .map(Number);
     CanvasRenderingContext2D.prototype.setTransform.apply(mapContext, matrix);
-    console.log("height")
-    console.log(height)
-    console.log("width")
-    console.log(width)
 
-    mapContext.drawImage(canvas, 20, height * .18, width * .8, height * .8);
+    mapContext.drawImage(canvas, 20, height*.2, width*0.9, height*0.9);
   }
 
   requestAnimationFrame(() => processCanvas(width, height, canvases, mapContext, callback));
@@ -3326,8 +3334,6 @@ const processCanvas = (width, height, canvases, mapContext, callback) => {
 const exportMap = async () => {
   const format = document.getElementById('format').value;
   const resolution = document.getElementById('resolution').value;
-  // const format = 'a5';
-  // const resolution = 300; // Adjust as needed
   const dim = dims[format];
   const width = Math.round((dim[0] * resolution) / 25.4);
   const height = Math.round((dim[1] * resolution) / 25.4);
@@ -3337,188 +3343,143 @@ const exportMap = async () => {
   // Generate the legend before render complete
   generateLegend();
 
+  // Set map size and view resolution for the export
+  map.setSize([width, height]);
+  const scaling = Math.min(width / size[0], height / size[1]);
+  map.getView().setResolution(viewResolution / scaling);
 
-  map.once('rendercomplete', function () {
+  // Capture the scale line first
+  const scaleLineElement = document.getElementById('scale-line-control');
+  let scaleLineCanvas;
+
+  try {
+    scaleLineCanvas = await html2canvas(scaleLineElement);
+  } catch (error) {
+    console.error('Error capturing scale line:', error);
+    scaleLineCanvas = document.createElement('canvas');
+    scaleLineCanvas.width = 0;
+    scaleLineCanvas.height = 0;
+  }
+
+  map.once('rendercomplete', async function () {
     const mapCanvas = document.createElement('canvas');
     mapCanvas.width = width;
     mapCanvas.height = height;
     const mapContext = mapCanvas.getContext('2d', { willReadFrequently: true });
-    mapContext.fillStyle = '#437572'; // Change 'white' to any color you want
+    mapContext.fillStyle = '#437572'; // Background color
     mapContext.fillRect(0, 0, width, height);
 
     const canvases = Array.prototype.slice.call(
       document.querySelectorAll('.ol-layer canvas')
     );
 
-    processCanvas(width, height, canvases, mapContext, () => {
-      // Draw the map area
-      mapContext.globalAlpha = 1;
-      mapContext.setTransform(1, 0, 0, 1, 0, 0);
-      // mapContext.drawImage(mapCanvas, 0,0,0,0, 20, 20, width * 0.7, height*0.7);
-      // mapContext.drawImage(mapCanvas, 20, width * 0.7, height*0.7, 0,0,0,0, 20);
-      // mapContext.drawImage(mapCanvas,20, 20, width * 0.7, height*0.7);
+    await processCanvas(width, height, canvases, mapContext);
 
+    // Draw the map area
+    mapContext.globalAlpha = 1;
+    mapContext.setTransform(1, 0, 0, 1, 0, 0);
 
+    // About Section
+    const aboutSection = document.createElement('div');
+    aboutSection.id = 'aboutSection';
+    aboutSection.innerHTML = `
+      <div class="canvas-about">
+        <img src="./fav.png" alt="Logo" style="width: 100px;" />
+      </div>
+      <div class="canvas-about">
+        <h1 style="margin-bottom:10px">Assam State Space Application Centre</h1>
+        <p>GS rd, Guwahati, 781005</p> 
+      </div>
+      <br>
+    `;
+    document.body.appendChild(aboutSection);
 
-      // About Section
-      const aboutSection = document.createElement('div');
-      aboutSection.id = 'aboutSection';
+    try {
+      const aboutCanvas = await html2canvas(aboutSection);
+      document.body.removeChild(aboutSection);
+      const aboutWidth = width * 0.8;
+      const aboutHeight = aboutWidth * 0.13;
+      mapContext.drawImage(aboutCanvas, 20, 20, aboutWidth, aboutHeight);
 
-      // const aboutSection = document.getElementById("aboutSection");
-
-      aboutSection.innerHTML = `
-          <div class="canvas-about">
-              <img src="./fav.png" alt="Logo" style="width: 100px;" />
-          </div>
-          <div class="canvas-about">
-              <h1 style="margin-bottom:10px">Assam State Space Application Centre</h1>
-              <p>GS rd, Guwahati, 781005</p> 
-          </div>
-         <br>
-        `;
-      document.body.appendChild(aboutSection);
-
-      html2canvas(aboutSection).then(aboutCanvas => {
-        document.body.removeChild(aboutSection);
-        const aboutDataURL = aboutCanvas.toDataURL('image/jpeg');
-
-        const aboutWidth = width * 0.3;
-        const aboutHeight = aboutWidth;
-        console.log("height")
-        console.log(height)
-        console.log("width")
-        console.log(width)
-
-        mapContext.drawImage(aboutCanvas, 20, 20, width * 0.8, height * 0.15);
-
-
-
-
-        // Legend
-        const legendElement = document.getElementById('legend');
-        if (legendElement) {
-          html2canvas(legendElement).then(legendCanvas => {
-            // const legendDataURL = legendCanvas.toDataURL('image/jpeg');
-            // const legendWidth = width * 0.3;
-            // const legendHeight = legendCanvas.height * legendWidth / legendCanvas.width;
-
-            // // mapContext.drawImage(legendCanvas, 20 , height - legendHeight, legendWidth, legendHeight);
-            // mapContext.drawImage(legendCanvas, width*0.81 , 20, width*0.18);
-            const legendDataURL = legendCanvas.toDataURL('image/jpeg');
-            const legendWidth = width * 0.17;
-            const legendHeight = legendCanvas.height * legendWidth / legendCanvas.width;
-            mapContext.drawImage(legendCanvas, width * 0.82, height * .18, legendWidth, legendHeight);
-
-            // mapContext.drawImage(legendCanvas, width * 0.7, height - legendHeight, legendWidth, legendHeight);
-
-
-            // Scale Line
-
-            const scaleLineElement = document.getElementById('scale-line-control');
-
-            html2canvas(scaleLineElement).then(scaleLineCanvas => {
-              // Ensure the scale line element is not removed before it's fully captured
-              const scaleLineDataURL = scaleLineCanvas.toDataURL('image/jpeg');
-
-              // Calculate scaling factors maintaining the aspect ratio
-              const scaleFactor = width * 1.8 / size[0];
-              const scaleLineWidth = scaleLineCanvas.width * scaleFactor;
-              const scaleLineHeight = scaleLineCanvas.height * scaleFactor;
-
-              // Draw the scale line on the map context, ensuring it fits correctly
-              mapContext.drawImage(scaleLineCanvas, width * .85 - scaleLineWidth, height - scaleLineHeight, scaleLineWidth * 0.8, scaleLineHeight * 0.8);
-
-              // Additional Text Section
-              const additionalTextSection = document.createElement('div');
-              additionalTextSection.id = 'additionalTextSection';
-
-              // const additionalTextSection = document.getElementById("additionalTextSection");
-
-
-              additionalTextSection.innerHTML = `
-                <div style="font-weight:900;">
-                          <br>
-
-                  <h3>Legend<nobr> Section</h3>
-                  <br>
-                </div>`;
-              document.body.appendChild(additionalTextSection);
-
-              html2canvas(additionalTextSection).then(additionalTextCanvas => {
-                document.body.removeChild(additionalTextSection);
-                const additionalTextDataURL = additionalTextCanvas.toDataURL('image/jpeg');
-                // Calculate the width and height maintaining the aspect ratio
-                const additionalTextWidth = width * 0.17;
-                const additionalTextHeight = additionalTextCanvas.height * additionalTextWidth / additionalTextCanvas.width;
-
-                mapContext.drawImage(additionalTextCanvas, width * 0.82, 20, additionalTextWidth, additionalTextHeight);
-
-                // mapContext.drawImage(additionalTextCanvas, width * 0.82, 20, width * 0.8, height*0.1 );
-                // mapContext.drawImage(aboutCanvas, 20, 20, width * 0.8, height * 0.1);
-                // width * 0.82, height * .12
-                // Export to PDF
-                const pdf = new jsPDF('landscape', undefined, format);
-                pdf.addImage(mapCanvas.toDataURL('image/jpeg'), 'JPEG', 0, 0, dim[0], dim[1]);
-                pdf.save('map.pdf');
-
-                // Reset map
-                map.setSize(size);
-                map.getView().setResolution(viewResolution);
-                exportButton.disabled = false;
-                document.body.style.cursor = 'auto';
-              });
-            }).catch(error => {
-              console.error('Error capturing scale line:', error);
-              // Continue with PDF export even if scale line capture fails
-              const pdf = new jsPDF('landscape', undefined, format);
-              pdf.addImage(mapCanvas.toDataURL('image/jpeg'), 'JPEG', 0, 0, dim[0], dim[1]);
-              pdf.save('map.pdf');
-              map.setSize(size);
-              map.getView().setResolution(viewResolution);
-              exportButton.disabled = false;
-              document.body.style.cursor = 'auto';
-            });
-          }).catch(error => {
-            console.error('Error capturing legend:', error);
-            // Continue with PDF export even if legend capture fails
-            const pdf = new jsPDF('landscape', undefined, format);
-            pdf.addImage(mapCanvas.toDataURL('image/jpeg'), 'JPEG', 0, 0, dim[0], dim[1]);
-            pdf.save('map.pdf');
-            map.setSize(size);
-            map.getView().setResolution(viewResolution);
-            exportButton.disabled = false;
-            document.body.style.cursor = 'auto';
-          });
-        } else {
-          console.error('Legend element not found');
+      // Legend
+      const legendElement = document.getElementById('legend');
+      if (legendElement) {
+        try {
+          const legendCanvas = await html2canvas(legendElement);
+          const legendWidth = width * 0.17;
+          const legendHeight = legendCanvas.height * legendWidth / legendCanvas.width;
+          mapContext.drawImage(legendCanvas, width * 0.82, height * 0.18, legendWidth, legendHeight);
+        } catch (error) {
+          console.error('Error capturing legend:', error);
         }
-      }).catch(error => {
-        console.error('Error capturing about section:', error);
-        // Continue with PDF export even if about section capture fails
-        const pdf = new jsPDF('landscape', undefined, format);
-        pdf.addImage(mapCanvas.toDataURL('image/jpeg'), 'JPEG', 0, 0, dim[0], dim[1]);
-        pdf.save('map.pdf');
-        map.setSize(size);
-        map.getView().setResolution(viewResolution);
-        exportButton.disabled = false;
-        document.body.style.cursor = 'auto';
-      });
-    });
+      } else {
+        console.error('Legend element not found');
+      }
+
+      // Draw Scale Line
+      if (scaleLineCanvas) {
+        const scaleLineWidth = scaleLineCanvas.width;
+        const scaleLineHeight = scaleLineCanvas.height;
+        mapContext.drawImage(scaleLineCanvas, width * 0.82 - scaleLineWidth, height* 0.98 - scaleLineHeight, scaleLineWidth * 0.8, scaleLineHeight * 0.8);
+      }
+
+      // Additional Text Section
+      const additionalTextSection = document.createElement('div');
+      additionalTextSection.id = 'additionalTextSection';
+      additionalTextSection.innerHTML = `
+        <div style="font-weight:900;">
+          <br>
+          <h3>Legend Section</h3>
+          <br>
+        </div>`;
+      document.body.appendChild(additionalTextSection);
+
+      try {
+        const additionalTextCanvas = await html2canvas(additionalTextSection);
+        document.body.removeChild(additionalTextSection);
+        const additionalTextWidth = width * 0.17;
+        const additionalTextHeight = additionalTextCanvas.height * additionalTextWidth / additionalTextCanvas.width;
+        mapContext.drawImage(additionalTextCanvas, width * 0.82, 20, additionalTextWidth, additionalTextHeight);
+      } catch (error) {
+        console.error('Error capturing additional text section:', error);
+      }
+
+      // Export to PDF
+      const pdf = new jsPDF('landscape', undefined, format);
+      pdf.addImage(mapCanvas.toDataURL('image/jpeg'), 'JPEG', 0, 0, dim[0], dim[1]);
+      pdf.save('map.pdf');
+
+      // Reset map to original size and view resolution
+      map.setSize(size);
+      map.getView().setResolution(viewResolution);
+
+      exportButton.disabled = false;
+      document.body.style.cursor = 'auto';
+    } catch (error) {
+      console.error('Error capturing canvas elements:', error);
+      const pdf = new jsPDF('landscape', undefined, format);
+      pdf.addImage(mapCanvas.toDataURL('image/jpeg'), 'JPEG', 0, 0, dim[0], dim[1]);
+      pdf.save('map.pdf');
+      // Reset map to original size and view resolution
+      map.setSize(size);
+      map.getView().setResolution(viewResolution);
+      exportButton.disabled = false;
+      document.body.style.cursor = 'auto';
+    }
   });
 
-  const printSize = [width, height];
-  map.setSize(printSize);
-  const scaling = Math.min(width / size[0], height / size[1]);
-  map.getView().setResolution(viewResolution / scaling);
+  // Trigger the map rendering process
+  map.render();
 };
 
+
 exportButton.addEventListener('click', function () {
-  console.log("hii")
-  generateLegend()
+  generateLegend();
   exportButton.disabled = true;
   document.body.style.cursor = 'progress';
   exportMap();
 }, false);
+
 
 // -------print ends
 
