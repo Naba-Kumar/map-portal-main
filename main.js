@@ -3642,7 +3642,7 @@ drawPointBuffer.on('drawend', async (event) => {
   else if (lyr === 'ssa2022') {
 
     workspace = "agis";
-    datastore = "ssa_data_20222";
+    datastore = "assam_village_shape";
 
   }
 
