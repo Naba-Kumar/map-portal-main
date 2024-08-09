@@ -862,10 +862,9 @@ canvas {
 #info{
     position: absolute;
     top: 60px;
-    left: 369px;
+    right: 150px;
     display: none;
-    max-height: 60px;
-    min-width: 300px;
+    max-height: 500px;
     background-color: #a4e7d1;
     padding: 10px;
     /* overflow: scroll; */

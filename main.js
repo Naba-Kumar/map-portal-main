@@ -1455,17 +1455,43 @@ function village_filter(option) {
         document.getElementById('info').style.display = "block";
         const info = document.getElementById('info-content');
         if (feature) {
-          info.innerHTML = `<table style="border-collapse: collapse; width: 100%;">
-      <thead>
-        <tr>
-          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('District')}</th>
-          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('Circle')}</th>
-          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('Village')}</th>
+          console.log(feature.getProperties())
 
-        </tr>
-      </thead>
-      </table>`;
-        } else {
+            const properties = feature.getProperties();
+            let contInfoHTML = `
+            <table style="border-collapse: collapse; width: 100%;">
+              <thead>
+                <tr>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Property</th>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Value</th>
+                </tr>
+              </thead>
+              <tbody>`;
+        
+            for (const key in properties) {
+              if (key !== 'geometry') {
+                contInfoHTML += `
+                <tr>
+                  <td style="border: 1px solid black; padding: 8px;">${key}</td>
+                  <td style="border: 1px solid black; padding: 8px;">${properties[key]}</td>
+                </tr>`;
+              }
+            }
+        
+            contInfoHTML += `</tbody></table>`;
+        
+            let infoHTML = `<h3>Village Information</h3><br>`;
+            // Assuming `count` is a variable that holds the number of schools in the village
+            infoHTML += contInfoHTML;
+        
+            document.getElementById('info-content').innerHTML = infoHTML;
+            infopopup.style.display = "block";
+
+
+
+       
+        }
+         else {
           info.innerHTML = '&nbsp;';
         }
 
@@ -1829,19 +1855,44 @@ async function ssa_select(option) {
     map.forEachFeatureAtPixel(pixel, function (feature, layer) {
       if (layer && layer.get('name') === 'ssaLayer' ) {
         document.getElementById('info').style.display = "block";
+        let popupinfo;
         const info = document.getElementById('info-content');
         if (feature) {
-          info.innerHTML = `<table style="border-collapse: collapse; width: 100%;">
-      <thead>
-        <tr>
-          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('District')}</th>
-          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('Circle')}</th>
-          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('Village')}</th>
-          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('School')}</th>
+          console.log(feature.getProperties())
 
-        </tr>
-      </thead>
-      </table>`;
+            const properties = feature.getProperties();
+            let contInfoHTML = `
+            <table style="border-collapse: collapse; width: 100%;">
+              <thead>
+                <tr>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Property</th>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Value</th>
+                </tr>
+              </thead>
+              <tbody>`;
+        
+            for (const key in properties) {
+              if (key !== 'geometry') {
+                contInfoHTML += `
+                <tr>
+                  <td style="border: 1px solid black; padding: 8px;">${key}</td>
+                  <td style="border: 1px solid black; padding: 8px;">${properties[key]}</td>
+                </tr>`;
+              }
+            }
+        
+            contInfoHTML += `</tbody></table>`;
+        
+            let infoHTML = `<h3>SSA Data Information</h3><br>`;
+            // Assuming `count` is a variable that holds the number of schools in the village
+            infoHTML += contInfoHTML;
+        
+            document.getElementById('info-content').innerHTML = infoHTML;
+            infopopup.style.display = "block";
+
+
+
+       
         } else {
           info.innerHTML = '&nbsp;';
         }
@@ -1890,12 +1941,18 @@ document.getElementById('ssa_clearButton').addEventListener('click', function ()
 
 // --------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------
+// overlay
+
+
 // state dist Layer select tool starts
 
 // side menu options
 
 // admin states
 // state boundary
+
+
+// 
 
 
 const villageCheckbox = document.getElementById('VillageBoundary');
@@ -3636,13 +3693,13 @@ drawPointBuffer.on('drawend', async (event) => {
 
   if (lyr === 'village') {
     workspace = "agis";
-    datastore = "india_shp_vill_data";
+    datastore = "assam_village_shape";
 
   }
   else if (lyr === 'ssa2022') {
 
     workspace = "agis";
-    datastore = "assam_village_shape";
+    datastore = "ssa_data_20222";
 
   }
 
@@ -4006,17 +4063,58 @@ function assamStateDistFilter(option) {
       if (layer && layer.get('name') === 'DistrictFiltered') {
         document.getElementById('info').style.display = "block";
         const info = document.getElementById('info-content');
-        if (feature) {
-          info.innerHTML = `<table style="border-collapse: collapse; width: 100%;">
-      <thead>
-        <tr>
-          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('District')}</th>
-          <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('Area')}</th>
 
-        </tr>
-      </thead>
-      </table>`;
-        } else {
+        if (feature) {
+          console.log(feature.getProperties())
+
+            const properties = feature.getProperties();
+            let contInfoHTML = `
+            <table style="border-collapse: collapse; width: 100%;">
+              <thead>
+                <tr>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Property</th>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Value</th>
+                </tr>
+              </thead>
+              <tbody>`;
+        
+            for (const key in properties) {
+              if (key !== 'geometry') {
+                contInfoHTML += `
+                <tr>
+                  <td style="border: 1px solid black; padding: 8px;">${key}</td>
+                  <td style="border: 1px solid black; padding: 8px;">${properties[key]}</td>
+                </tr>`;
+              }
+            }
+        
+            contInfoHTML += `</tbody></table>`;
+        
+            let infoHTML = `<h3>District Information</h3><br>`;
+            // Assuming `count` is a variable that holds the number of schools in the village
+            infoHTML += contInfoHTML;
+        
+            document.getElementById('info-content').innerHTML = infoHTML;
+            infopopup.style.display = "block";
+
+
+
+       
+        }
+      //   if (feature) {
+      //     info.innerHTML = `<table style="border-collapse: collapse; width: 100%;">
+      // <thead>
+      //   <tr>
+      //     <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('District')}</th>
+      //     <th style="border: 1px solid black; padding: 8px; text-align: left;">${feature.get('Area')}</th>
+
+      //   </tr>
+      // </thead>
+      // </table>`;
+      //   } 
+        
+        
+        else {
           info.innerHTML = '&nbsp;';
         }
 

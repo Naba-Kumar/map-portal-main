@@ -153,3 +153,13 @@ body {
 }
 
 /* --------------------------------------------------------- */
+
+.overlaypopup {
+  position: absolute;
+  background: white;
+  padding: 5px;
+  border: 1px solid black;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  pointer-events: none;
+  background: #fd0000;
+}
